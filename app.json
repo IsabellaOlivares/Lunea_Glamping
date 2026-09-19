@@ -1,0 +1,16 @@
+{
+  "expo": {
+    "name": "lunea-glamping",
+    "slug": "lunea-glamping",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.lunea.glamping"
+    },
+    "android": {
+      "package": "com.lunea.glamping"
+    }
+  }
+}
