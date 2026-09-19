@@ -73,3 +73,25 @@
 {"_e":"metro:bundling:progress","_t":1789794933232,"id":"2","progress":0,"total":1,"current":0}
 {"_e":"metro:bundling:done","_t":1789794933266,"id":"2","total":1,"ms":440.0992}
 {"_e":"metro:client_log","_t":1789794935939,"level":"warn","data":["SafeAreaView has been deprecated and will be removed in a future release. Please use 'react-native-safe-area-context' instead. See https://github.com/AppAndFlow/react-native-safe-area-context"]}
+{"_e":"root:init","_t":1789857829104,"format":"v0-jsonl","version":"57.0.25"}
+{"_e":"env:mode","_t":1789857829125,"nodeEnv":"development","babelEnv":"development","mode":"development"}
+{"_e":"env:load","_t":1789857829146,"mode":"development","files":[],"env":{}}
+{"_e":"devserver:start","_t":1789857833683,"mode":"development","web":true,"baseUrl":"","asyncRoutes":false,"routerRoot":"../..\\..\\app","serverComponents":false,"serverActions":false,"serverRendering":false,"apiRoutes":false,"exporting":false}
+{"_e":"metro:config","_t":1789857841291,"serverRoot":"../..\\..","projectRoot":"../..\\..","exporting":false,"flags":{"autolinkingModuleResolution":false,"serverActions":false,"serverComponents":false,"reactCompiler":false,"optimizeGraph":false,"treeshaking":false,"logbox":false}}
+{"_e":"expo:dev-tools-plugin:load","_t":1789857844879,"plugins":[]}
+{"_e":"metro:instantiate","_t":1789857855380,"atlas":false,"workers":8,"host":"::","port":8081}
+{"_e":"metro:bundling:started","_t":1789857872856,"id":"1","platform":"android","environment":null,"entry":"node_modules\\.pnpm\\expo@57.0.4_@babel+core@7.2_97217aa6f9a587aea7f712a6b451ccfb\\node_modules\\expo\\AppEntry.js"}
+{"_e":"metro:bundling:progress","_t":1789857872857,"id":"1","progress":0,"total":1,"current":0}
+{"_e":"metro:bundling:progress","_t":1789857872863,"id":"1","progress":0,"total":1,"current":0}
+{"_e":"metro:bundling:progress","_t":1789857872963,"id":"1","progress":0.0656640625,"total":160,"current":41}
+{"_e":"metro:bundling:progress","_t":1789857873063,"id":"1","progress":0.2529154272579773,"total":344,"current":173}
+{"_e":"metro:bundling:progress","_t":1789857873163,"id":"1","progress":0.48380406652691427,"total":473,"current":329}
+{"_e":"metro:bundling:progress","_t":1789857873265,"id":"1","progress":0.7562733716007284,"total":583,"current":507}
+{"_e":"metro:bundling:progress","_t":1789857873365,"id":"1","progress":0.9429506095530503,"total":691,"current":671}
+{"_e":"metro:bundling:progress","_t":1789857873473,"id":"1","progress":0.9971611086002066,"total":704,"current":703}
+{"_e":"metro:bundling:progress","_t":1789857878922,"id":"1","progress":0.999,"total":704,"current":704}
+{"_e":"metro:bundling:progress","_t":1789857879037,"id":"1","progress":0.999,"total":707,"current":705}
+{"_e":"metro:bundling:progress","_t":1789857879836,"id":"1","progress":0.999,"total":707,"current":706}
+{"_e":"metro:bundling:progress","_t":1789857879936,"id":"1","progress":0.999,"total":707,"current":707}
+{"_e":"metro:bundling:done","_t":1789857880057,"id":"1","total":707,"ms":7200.0764}
+{"_e":"metro:client_log","_t":1789857947043,"level":"log","data":["Item seleccionado:","Paseo a Caballo"]}

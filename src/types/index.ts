@@ -1,17 +1,12 @@
-// ============================================================
-// TYPES — src/types/index.ts
-// ============================================================
-// Define aquí la interfaz del elemento de tu dominio asignado.
-// Este type se usará en mockData.ts, ItemCard.tsx y HomeScreen.tsx
-// ============================================================
+export type PlanCategory = 'Alojamiento' | 'Actividad'; 
 
-// TODO: Renombra esta interfaz con el nombre de tu elemento
-// Ejemplos: Book, Medication, Member, Dish, Movie, Destination
-export interface Plan {
+export interface Item {
   id: string;
   name: string;
+  category: PlanCategory;
   imageUri: string;
-  capacity: string;
   description: string;
+  details: string;
   price: number;
+  priceUnit: string;
 }

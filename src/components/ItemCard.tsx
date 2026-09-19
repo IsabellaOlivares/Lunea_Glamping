@@ -1,21 +1,32 @@
 import React from 'react';
 import { View, Text, Image, Pressable, StyleSheet } from 'react-native';
-import { Plan } from '../types';
+import { Item } from '../types';
+import { COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../theme';
 
-interface PlanCardProps {
-  item: Plan;
-  onPress: (item: Plan) => void;
+interface ItemCardProps {
+  item: Item;
+  onPress: (item: Item) => void;
 }
 
-export function ItemCard({ item, onPress }: PlanCardProps): React.JSX.Element {
+export function ItemCard({ item, onPress }: ItemCardProps): React.JSX.Element {
   return (
-    <Pressable style={styles.card} onPress={() => onPress(item)}>
+    <Pressable
+      style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+      onPress={() => onPress(item)}
+      accessibilityRole="button"
+      accessibilityLabel={item.name}
+    >
       <Image source={{ uri: item.imageUri }} style={styles.cardImage} resizeMode="cover" />
       <View style={styles.cardBody}>
-        <Text style={styles.cardName}>{item.name}</Text>
-        <Text style={styles.cardSubtitle}>{item.capacity}</Text>
-        <Text style={styles.cardDescription}>{item.description}</Text>
-        <Text style={styles.cardPrice}>Desde ${item.price.toLocaleString('es-CO')} / noche</Text>
+        <Text style={styles.itemName}>{item.name}</Text>
+        <Text style={styles.fieldText}>{item.details}</Text>
+        <Text style={styles.fieldText}>{item.description}</Text>
+        <Text style={styles.priceText}>
+          ${item.price.toLocaleString('es-CO')} {item.priceUnit}
+        </Text>
+        <View style={styles.badge}>
+          <Text style={styles.badgeText}>{item.category}</Text>
+        </View>
       </View>
     </Pressable>
   );
@@ -23,17 +34,53 @@ export function ItemCard({ item, onPress }: PlanCardProps): React.JSX.Element {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#161b22',
-    borderRadius: 12,
-    marginBottom: 12,
-    overflow: 'hidden',
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.md,
+    marginHorizontal: SPACING.base,
+    marginVertical: SPACING.xs,
     borderWidth: 1,
-    borderColor: '#30363d',
+    borderColor: COLORS.border,
+    overflow: 'hidden',
   },
-  cardImage: { width: '100%', height: 160 },
-  cardBody: { padding: 16, gap: 4 },
-  cardName: { fontSize: 18, fontWeight: 'bold', color: '#ffffff' },
-  cardSubtitle: { fontSize: 14, color: '#8b949e' },
-  cardDescription: { fontSize: 13, color: '#8b949e' },
-  cardPrice: { fontSize: 15, fontWeight: '600', color: '#4CAF50', marginTop: 4 },
+  cardPressed: {
+    backgroundColor: COLORS.surfaceAlt,
+  },
+  cardImage: {
+    width: '100%',
+    height: 140,
+  },
+  cardBody: {
+    padding: SPACING.base,
+  },
+  itemName: {
+    fontSize: TYPOGRAPHY.size.md,
+    fontWeight: TYPOGRAPHY.weight.semibold,
+    color: COLORS.textPrimary,
+    marginBottom: SPACING.xs,
+  },
+  fieldText: {
+    fontSize: TYPOGRAPHY.size.sm,
+    color: COLORS.textSecondary,
+    marginBottom: 2,
+  },
+  priceText: {
+    fontSize: TYPOGRAPHY.size.base,
+    fontWeight: TYPOGRAPHY.weight.semibold,
+    color: COLORS.success,
+    marginTop: SPACING.xs,
+  },
+  badge: {
+    alignSelf: 'flex-start',
+    marginTop: SPACING.sm,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: 3,
+    borderRadius: RADIUS.full,
+    backgroundColor: COLORS.accentDim,
+  },
+  badgeText: {
+    fontSize: TYPOGRAPHY.size.xs,
+    fontWeight: TYPOGRAPHY.weight.semibold,
+    color: COLORS.accent,
+    textTransform: 'capitalize',
+  },
 });
