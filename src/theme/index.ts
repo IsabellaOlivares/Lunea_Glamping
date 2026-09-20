@@ -1,70 +1,52 @@
-// ============================================
-// THEME — Semana 03
-// Constantes de estilo globales.
-// Úsalas en todos los StyleSheet del proyecto.
-// ============================================
+// src/theme/index.ts
+// Sistema de diseño centralizado del proyecto.
+// Misma paleta que weeks 02-03 para consistencia.
 
 export const COLORS = {
   // Fondos
   background: '#0d1117',
   surface: '#161b22',
-  surfaceAlt: '#21262d',
-
-  // Bordes
-  border: '#30363d',
-  borderLight: '#21262d',
+  card: '#21262d',
 
   // Texto
   textPrimary: '#e6edf3',
   textSecondary: '#8b949e',
-  textMuted: '#6e7681',
+  textMuted: '#484f58',
 
-  // Acento — puedes cambiar este color según tu dominio
-  // Ejemplos: '#3fb950' (verde), '#f0883e' (naranja), '#a5d6ff' (azul claro)
+  // Acento React Native
   accent: '#61DAFB',
-  accentDim: '#61DAFB33',
 
-  // Semánticos
+  // Feedback
   success: '#3fb950',
-  warning: '#f0883e',
+  warning: '#d29922',
   error: '#f85149',
-  info: '#58a6ff',
+
+  // Borde
+  border: '#30363d',
 } as const;
 
 export const TYPOGRAPHY = {
-  // Tamaños de fuente
-  size: {
-    xs: 11,
-    sm: 13,
-    base: 15,
-    md: 17,
-    lg: 20,
-    xl: 24,
-    xxl: 30,
-  },
-
-  // Pesos
-  weight: {
-    regular: '400' as const,
-    medium: '500' as const,
-    semibold: '600' as const,
-    bold: '700' as const,
-  },
+  h1: { fontSize: 28, fontWeight: '700' as const, color: COLORS.textPrimary },
+  h2: { fontSize: 22, fontWeight: '600' as const, color: COLORS.textPrimary },
+  h3: { fontSize: 18, fontWeight: '600' as const, color: COLORS.textPrimary },
+  body: { fontSize: 16, fontWeight: '400' as const, color: COLORS.textPrimary },
+  caption: { fontSize: 13, fontWeight: '400' as const, color: COLORS.textSecondary },
+  label: { fontSize: 12, fontWeight: '500' as const, color: COLORS.textMuted },
 } as const;
 
 export const SPACING = {
   xs: 4,
   sm: 8,
-  md: 12,
-  base: 16,
-  lg: 20,
-  xl: 24,
-  xxl: 32,
+  md: 16,
+  lg: 24,
+  xl: 32,
+  xxl: 48,
 } as const;
 
 export const RADIUS = {
   sm: 6,
-  md: 8,
-  lg: 12,
+  md: 10,
+  lg: 14,
+  xl: 20,
   full: 9999,
 } as const;

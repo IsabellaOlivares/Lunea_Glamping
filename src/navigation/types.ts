@@ -1,15 +1,17 @@
+import type { PlanCategory } from "../types";
 export type RootTabParamList = {
   Home: undefined;
-  Favorites: undefined;
+  Saved: undefined;
 };
 
 export type HomeStackParamList = {
   HomeList: undefined;
+
   HomeDetail: {
     id: string;
     name: string;
     description: string;
-    category: string;
+    category: PlanCategory;
     price: number;
     priceUnit: string;
     details: string;

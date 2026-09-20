@@ -1,117 +1,136 @@
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useNavigation } from '@react-navigation/native';
+import React from 'react';
 import {
   FlatList,
   Pressable,
   StyleSheet,
   Text,
   View,
+  type ListRenderItem,
 } from 'react-native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useNavigation } from '@react-navigation/native';
 
 import { ITEMS } from '../data/mockData';
 import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '../theme';
 import type { Item } from '../types';
 import type { HomeStackParamList } from '../navigation/types';
 
-type HomeScreenNavigationProp = NativeStackNavigationProp<
-  HomeStackParamList,
-  'HomeList'
->;
+type HomeScreenNavProp = NativeStackNavigationProp<HomeStackParamList, 'HomeList'>;
 
-export function HomeScreen(): React.JSX.Element {
-  const navigation = useNavigation<HomeScreenNavigationProp>();
+interface ItemCardProps {
+  item: Item;
+  onPress: () => void;
+}
 
-  function handleItemPress(item: Item): void {
-    navigation.navigate('HomeDetail', {
-      id: item.id,
-      name: item.name,
-      description: item.description,
-      category: item.category,
-      price: item.price,
-      priceUnit: item.priceUnit,
-      details: item.details,
-    });
-  }
+function ItemCard({ item, onPress }: ItemCardProps): React.JSX.Element {
+  return (
+    <Pressable
+      style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+      onPress={onPress}
+      testID={'item-card-${item.id}'}
+    >
+      <View style={styles.thumbnail}>
+        <Text style={styles.thumbnailText}>{item.name.charAt(0)}</Text>
+      </View>
 
-  function renderItem({ item }: { item: Item }): React.JSX.Element {
-    return (
-      <Pressable
-        style={({ pressed }) => [
-          styles.card,
-          pressed && styles.cardPressed,
-        ]}
-        onPress={() => handleItemPress(item)}
-        testID={`item-${item.id}`}
-      >
-        <Text style={styles.itemName}>{item.name}</Text>
-        <Text style={styles.itemDescription} numberOfLines={2}>
+      <View style={styles.cardContent}>
+        <Text style={styles.cardTitle} numberOfLines={1}>
+          {item.name}
+        </Text>
+        <Text style={styles.cardDescription} numberOfLines={2}>
           {item.description}
         </Text>
-        <Text style={styles.price}>
-          ${item.price.toLocaleString('es-CO')} {item.priceUnit}
+        <Text style={styles.cardPrice}>
+          {'$' + item.price.toLocaleString('es-CO') + ' ' + item.priceUnit}
         </Text>
-        <Text style={styles.chevron}>{'›'}</Text>
-      </Pressable>
-    );
-  }
+      </View>
+
+      <Text style={styles.chevron}>{'>'}</Text>
+    </Pressable>
+  );
+}
+
+export function HomeScreen(): React.JSX.Element {
+  const navigation = useNavigation<HomeScreenNavProp>();
+  const items = ITEMS;
+
+  const renderItem: ListRenderItem<Item> = ({ item }) => (
+    <ItemCard
+      item={item}
+      onPress={() =>
+        navigation.navigate('HomeDetail', {
+          id: item.id,
+          name: item.name,
+          description: item.description,
+          category: item.category,
+          price: item.price,
+          priceUnit: item.priceUnit,
+          details: item.details,
+        })
+      }
+    />
+  );
 
   return (
     <View style={styles.container}>
       <FlatList
-        data={ITEMS}
+        data={items}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         contentContainerStyle={styles.list}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
+        ListHeaderComponent={
+          <Text style={styles.sectionLabel}>
+            {items.length} items
+          </Text>
+        }
+        ListEmptyComponent={
+          <Text style={styles.emptyText}>No hay items disponibles.</Text>
+        }
       />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
+  container: { flex: 1, backgroundColor: COLORS.background },
+  list: { padding: SPACING.md, paddingBottom: SPACING.xl },
+  sectionLabel: {
+    ...TYPOGRAPHY.label,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: SPACING.sm,
   },
-  list: {
-    padding: SPACING.base,
-  },
+  separator: { height: SPACING.sm },
   card: {
-    backgroundColor: COLORS.surface,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.card,
     borderRadius: RADIUS.md,
-    padding: SPACING.base,
+    padding: SPACING.md,
     borderWidth: 1,
     borderColor: COLORS.border,
+    gap: SPACING.md,
   },
-  cardPressed: {
-    opacity: 0.7,
-    backgroundColor: COLORS.surfaceAlt,
+  cardPressed: { opacity: 0.7 },
+  thumbnail: {
+    width: 48,
+    height: 48,
+    borderRadius: RADIUS.sm,
+    backgroundColor: COLORS.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  itemName: {
-    fontSize: TYPOGRAPHY.size.md,
-    fontWeight: TYPOGRAPHY.weight.semibold,
-    color: COLORS.textPrimary,
-    marginBottom: SPACING.xs,
-  },
-  itemDescription: {
-    fontSize: TYPOGRAPHY.size.sm,
+  thumbnailText: { ...TYPOGRAPHY.h3, color: COLORS.accent },
+  cardContent: { flex: 1, gap: SPACING.xs },
+  cardTitle: { ...TYPOGRAPHY.body, fontWeight: '600' },
+  cardDescription: { ...TYPOGRAPHY.caption },
+  cardPrice: { ...TYPOGRAPHY.caption, color: COLORS.success, fontWeight: '600' },
+  chevron: { ...TYPOGRAPHY.h2, color: COLORS.textMuted },
+  emptyText: {
+    ...TYPOGRAPHY.body,
+    textAlign: 'center',
+    marginTop: SPACING.xl,
     color: COLORS.textSecondary,
-    lineHeight: 18,
-  },
-  price: {
-    fontSize: TYPOGRAPHY.size.sm,
-    fontWeight: TYPOGRAPHY.weight.semibold,
-    color: COLORS.accent,
-    marginTop: SPACING.xs,
-  },
-  chevron: {
-    position: 'absolute',
-    right: SPACING.base,
-    top: '50%',
-    fontSize: TYPOGRAPHY.size.xl,
-    color: COLORS.textMuted,
-  },
-  separator: {
-    height: SPACING.sm,
   },
 });

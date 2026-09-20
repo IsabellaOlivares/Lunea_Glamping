@@ -1,4 +1,6 @@
-import 'react-native-gesture-handler';
+// App.tsx — Semana 04: Estado Global con Zustand
+// NavigationContainer raíz. No necesita cambios.
+
 import { NavigationContainer } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -7,9 +9,7 @@ import { RootNavigator } from './src/navigation/RootNavigator';
 
 export default function App(): React.JSX.Element {
   return (
-    // SafeAreaProvider garantiza que la safe area (notch, island) se calcule correctamente
     <SafeAreaProvider>
-      {/* NavigationContainer gestiona el estado del historial de navegación */}
       <NavigationContainer>
         <RootNavigator />
       </NavigationContainer>

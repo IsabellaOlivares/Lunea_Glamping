@@ -12,9 +12,3 @@ export const ITEMS: Item[] = [
   { id: '9', name: 'Paseo a Caballo', description: 'Recorrido guiado por senderos, incluye equipo básico de seguridad', category: 'Actividad', price: 50000, priceUnit: 'por persona', details: 'Duración aprox. 60 min' },
   { id: '10', name: 'Taller de Pintura', description: 'Lienzo, pinturas, pinceles y un instructor. Te puedes llevar tu obra', category: 'Actividad', price: 40000, priceUnit: 'por persona', details: 'Duración 1h 30min' },
 ];
-
-export const FAVORITES: Item[] = [
-  ITEMS[0], // Lunea Romance
-  ITEMS[3], // Lunea Noche Especial
-  ITEMS[7], // Sesión de Fotografía
-];
