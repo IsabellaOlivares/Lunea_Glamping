@@ -1,5 +1,5 @@
 // ============================================
-// THEME — Semana 02
+// THEME — Semana 03
 // Constantes de estilo globales.
 // Úsalas en todos los StyleSheet del proyecto.
 // ============================================
@@ -21,8 +21,8 @@ export const COLORS = {
 
   // Acento — puedes cambiar este color según tu dominio
   // Ejemplos: '#3fb950' (verde), '#f0883e' (naranja), '#a5d6ff' (azul claro)
-  accent: '#4CAF50',
-  accentDim: '#4CAF5033',
+  accent: '#61DAFB',
+  accentDim: '#61DAFB33',
 
   // Semánticos
   success: '#3fb950',

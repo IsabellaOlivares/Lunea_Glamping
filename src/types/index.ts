@@ -1,12 +1,11 @@
-export type PlanCategory = 'Alojamiento' | 'Actividad'; 
+export type PlanCategory = 'Alojamiento' | 'Actividad';
 
 export interface Item {
   id: string;
   name: string;
-  category: PlanCategory;
-  imageUri: string;
   description: string;
-  details: string;
+  category: PlanCategory;
   price: number;
   priceUnit: string;
+  details: string;
 }

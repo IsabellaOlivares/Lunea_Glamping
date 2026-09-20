@@ -1,138 +1,117 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useNavigation } from '@react-navigation/native';
 import {
-  View,
-  Text,
   FlatList,
-  TextInput,
+  Pressable,
   StyleSheet,
-  Platform,
-  Keyboard,
-  KeyboardAvoidingView,
-  TouchableWithoutFeedback,
-  ListRenderItem,
+  Text,
+  View,
 } from 'react-native';
-import { Item } from '../types';
+
 import { ITEMS } from '../data/mockData';
-import { ItemCard } from '../components/ItemCard';
-import { COLORS, TYPOGRAPHY, SPACING } from '../theme';
+import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '../theme';
+import type { Item } from '../types';
+import type { HomeStackParamList } from '../navigation/types';
+
+type HomeScreenNavigationProp = NativeStackNavigationProp<
+  HomeStackParamList,
+  'HomeList'
+>;
 
 export function HomeScreen(): React.JSX.Element {
-  const [query, setQuery] = useState('');
+  const navigation = useNavigation<HomeScreenNavigationProp>();
 
-  const filteredItems = useMemo(() => {
-    if (query.trim() === '') return ITEMS;
-    return ITEMS.filter((item) =>
-      item.name.toLowerCase().includes(query.toLowerCase())
-    );
-  }, [query]);
+  function handleItemPress(item: Item): void {
+    navigation.navigate('HomeDetail', {
+      id: item.id,
+      name: item.name,
+      description: item.description,
+      category: item.category,
+      price: item.price,
+      priceUnit: item.priceUnit,
+      details: item.details,
+    });
+  }
 
-  const renderEmpty = useCallback(
-    () => (
-      <View style={styles.emptyContainer}>
-        <Text style={styles.emptyText}>Sin resultados para "{query}"</Text>
-        <Text style={styles.emptySubText}>
-          Intenta buscar con otro nombre o revisa la ortografía
+  function renderItem({ item }: { item: Item }): React.JSX.Element {
+    return (
+      <Pressable
+        style={({ pressed }) => [
+          styles.card,
+          pressed && styles.cardPressed,
+        ]}
+        onPress={() => handleItemPress(item)}
+        testID={`item-${item.id}`}
+      >
+        <Text style={styles.itemName}>{item.name}</Text>
+        <Text style={styles.itemDescription} numberOfLines={2}>
+          {item.description}
         </Text>
-      </View>
-    ),
-    [query]
-  );
-
-  const handleItemPress = useCallback((item: Item): void => {
-    console.log('Item seleccionado:', item.name);
-  }, []);
-
-  const renderItem: ListRenderItem<Item> = useCallback(
-    ({ item }) => <ItemCard item={item} onPress={handleItemPress} />,
-    [handleItemPress]
-  );
+        <Text style={styles.price}>
+          ${item.price.toLocaleString('es-CO')} {item.priceUnit}
+        </Text>
+        <Text style={styles.chevron}>{'›'}</Text>
+      </Pressable>
+    );
+  }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.kvContainer}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={styles.inner}>
-          <View style={styles.searchContainer}>
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Buscar plan o actividad..."
-              placeholderTextColor={COLORS.textMuted}
-              value={query}
-              onChangeText={setQuery}
-              keyboardType="default"
-              returnKeyType="search"
-              clearButtonMode="while-editing"
-            />
-          </View>
-
-          <FlatList
-            data={filteredItems}
-            keyExtractor={(item) => item.id}
-            renderItem={renderItem}
-            ListEmptyComponent={renderEmpty}
-            ItemSeparatorComponent={() => <View style={styles.separator} />}
-            contentContainerStyle={styles.listContent}
-            keyboardShouldPersistTaps="handled"
-          />
-        </View>
-      </TouchableWithoutFeedback>
-    </KeyboardAvoidingView>
+    <View style={styles.container}>
+      <FlatList
+        data={ITEMS}
+        keyExtractor={(item) => item.id}
+        renderItem={renderItem}
+        contentContainerStyle={styles.list}
+        ItemSeparatorComponent={() => <View style={styles.separator} />}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  kvContainer: {
+  container: {
     flex: 1,
     backgroundColor: COLORS.background,
   },
-  inner: {
-    flex: 1,
+  list: {
+    padding: SPACING.base,
   },
-  searchContainer: {
-    paddingHorizontal: SPACING.base,
-    paddingVertical: SPACING.md,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.borderLight,
-  },
-  searchInput: {
+  card: {
     backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.md,
+    padding: SPACING.base,
     borderWidth: 1,
     borderColor: COLORS.border,
-    borderRadius: 8,
-    paddingHorizontal: SPACING.base,
-    paddingVertical: Platform.OS === 'ios' ? 12 : 10,
-    color: COLORS.textPrimary,
-    fontSize: TYPOGRAPHY.size.base,
   },
-  listContent: {
-    paddingTop: SPACING.sm,
-    paddingBottom: SPACING.xl,
-    flexGrow: 1,
+  cardPressed: {
+    opacity: 0.7,
+    backgroundColor: COLORS.surfaceAlt,
   },
-  separator: {
-    height: 1,
-    marginHorizontal: SPACING.base,
-    backgroundColor: COLORS.borderLight,
-  },
-  emptyContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingTop: 80,
-    paddingHorizontal: SPACING.xxl,
-  },
-  emptyText: {
+  itemName: {
     fontSize: TYPOGRAPHY.size.md,
-    fontWeight: '600',
+    fontWeight: TYPOGRAPHY.weight.semibold,
     color: COLORS.textPrimary,
-    textAlign: 'center',
-    marginBottom: SPACING.sm,
+    marginBottom: SPACING.xs,
   },
-  emptySubText: {
+  itemDescription: {
     fontSize: TYPOGRAPHY.size.sm,
     color: COLORS.textSecondary,
-    textAlign: 'center',
+    lineHeight: 18,
+  },
+  price: {
+    fontSize: TYPOGRAPHY.size.sm,
+    fontWeight: TYPOGRAPHY.weight.semibold,
+    color: COLORS.accent,
+    marginTop: SPACING.xs,
+  },
+  chevron: {
+    position: 'absolute',
+    right: SPACING.base,
+    top: '50%',
+    fontSize: TYPOGRAPHY.size.xl,
+    color: COLORS.textMuted,
+  },
+  separator: {
+    height: SPACING.sm,
   },
 });
