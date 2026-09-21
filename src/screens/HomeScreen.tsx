@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  ActivityIndicator,
   FlatList,
   Pressable,
   StyleSheet,
@@ -7,15 +8,15 @@ import {
   View,
   type ListRenderItem,
 } from 'react-native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-import { ITEMS } from '../data/mockData';
 import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '../theme';
 import type { Item } from '../types';
-import type { HomeStackParamList } from '../navigation/types';
+import type { RootStackParamList } from '../navigation/types';
+import { useItems } from '../hooks/useItems';
 
-type HomeScreenNavProp = NativeStackNavigationProp<HomeStackParamList, 'HomeList'>;
+type HomeNavProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 
 interface ItemCardProps {
   item: Item;
@@ -25,47 +26,65 @@ interface ItemCardProps {
 function ItemCard({ item, onPress }: ItemCardProps): React.JSX.Element {
   return (
     <Pressable
-      style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+      style={({ pressed }) => [styles.card, pressed && { opacity: 0.7 }]}
       onPress={onPress}
       testID={'item-card-${item.id}'}
     >
-      <View style={styles.thumbnail}>
-        <Text style={styles.thumbnailText}>{item.name.charAt(0)}</Text>
+      <View style={styles.cardAvatar}>
+        <Text style={styles.cardAvatarText}>
+          {String(item.name).charAt(0).toUpperCase()}
+        </Text>
       </View>
-
       <View style={styles.cardContent}>
         <Text style={styles.cardTitle} numberOfLines={1}>
           {item.name}
         </Text>
-        <Text style={styles.cardDescription} numberOfLines={2}>
+        <Text style={styles.cardSubtitle} numberOfLines={1}>
           {item.description}
         </Text>
         <Text style={styles.cardPrice}>
           {'$' + item.price.toLocaleString('es-CO') + ' ' + item.priceUnit}
         </Text>
       </View>
-
       <Text style={styles.chevron}>{'>'}</Text>
     </Pressable>
   );
 }
 
 export function HomeScreen(): React.JSX.Element {
-  const navigation = useNavigation<HomeScreenNavProp>();
-  const items = ITEMS;
+  const navigation = useNavigation<HomeNavProp>();
+  const { data, isLoading, isError, isFetching, refetch, error } = useItems();
+
+  if (isLoading) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color={COLORS.accent} />
+        <Text style={styles.loadingText}>Cargando...</Text>
+      </View>
+    );
+  }
+
+  if (isError) {
+    return (
+      <View style={styles.centered}>
+        <Text style={styles.errorText}>No se pudo cargar la lista</Text>
+        <Text style={styles.errorDetail}>{(error as Error)?.message}</Text>
+        <Pressable style={styles.retryButton} onPress={() => refetch()}>
+          <Text style={styles.retryButtonText}>Reintentar</Text>
+        </Pressable>
+      </View>
+    );
+  }
+
+  const items = data ?? [];
 
   const renderItem: ListRenderItem<Item> = ({ item }) => (
     <ItemCard
       item={item}
       onPress={() =>
-        navigation.navigate('HomeDetail', {
+        navigation.navigate('Detail', {
           id: item.id,
-          name: item.name,
-          description: item.description,
-          category: item.category,
-          price: item.price,
-          priceUnit: item.priceUnit,
-          details: item.details,
+          name: String(item.name),
         })
       }
     />
@@ -75,17 +94,21 @@ export function HomeScreen(): React.JSX.Element {
     <View style={styles.container}>
       <FlatList
         data={items}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => String(item.id)}
         renderItem={renderItem}
         contentContainerStyle={styles.list}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
-        ListHeaderComponent={
-          <Text style={styles.sectionLabel}>
-            {items.length} items
-          </Text>
-        }
+        onRefresh={refetch}
+        refreshing={isFetching && !isLoading}
         ListEmptyComponent={
-          <Text style={styles.emptyText}>No hay items disponibles.</Text>
+          <View style={styles.centered}>
+            <Text style={styles.emptyText}>No hay planes disponibles.</Text>
+          </View>
+        }
+        ListHeaderComponent={
+          <Text style={styles.countLabel}>
+            {items.length} plan{items.length !== 1 ? 'es' : ''}
+          </Text>
         }
       />
     </View>
@@ -95,13 +118,13 @@ export function HomeScreen(): React.JSX.Element {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   list: { padding: SPACING.md, paddingBottom: SPACING.xl },
-  sectionLabel: {
+  separator: { height: SPACING.sm },
+  countLabel: {
     ...TYPOGRAPHY.label,
     textTransform: 'uppercase',
     letterSpacing: 1,
     marginBottom: SPACING.sm,
   },
-  separator: { height: SPACING.sm },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -112,25 +135,36 @@ const styles = StyleSheet.create({
     borderColor: COLORS.border,
     gap: SPACING.md,
   },
-  cardPressed: { opacity: 0.7 },
-  thumbnail: {
-    width: 48,
-    height: 48,
+  cardAvatar: {
+    width: 44,
+    height: 44,
     borderRadius: RADIUS.sm,
     backgroundColor: COLORS.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  thumbnailText: { ...TYPOGRAPHY.h3, color: COLORS.accent },
+  cardAvatarText: { ...TYPOGRAPHY.h3, color: COLORS.accent },
   cardContent: { flex: 1, gap: SPACING.xs },
   cardTitle: { ...TYPOGRAPHY.body, fontWeight: '600' },
-  cardDescription: { ...TYPOGRAPHY.caption },
+  cardSubtitle: { ...TYPOGRAPHY.caption },
   cardPrice: { ...TYPOGRAPHY.caption, color: COLORS.success, fontWeight: '600' },
   chevron: { ...TYPOGRAPHY.h2, color: COLORS.textMuted },
-  emptyText: {
-    ...TYPOGRAPHY.body,
-    textAlign: 'center',
-    marginTop: SPACING.xl,
-    color: COLORS.textSecondary,
+  centered: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: SPACING.md,
+    padding: SPACING.lg,
   },
+  loadingText: { ...TYPOGRAPHY.caption },
+  errorText: { ...TYPOGRAPHY.h3, color: COLORS.error },
+  errorDetail: { ...TYPOGRAPHY.caption, textAlign: 'center' },
+  retryButton: {
+    backgroundColor: COLORS.accent,
+    borderRadius: RADIUS.md,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.sm,
+  },
+  retryButtonText: { ...TYPOGRAPHY.body, color: COLORS.background, fontWeight: '600' },
+  emptyText: { ...TYPOGRAPHY.body, color: COLORS.textSecondary, textAlign: 'center' },
 });

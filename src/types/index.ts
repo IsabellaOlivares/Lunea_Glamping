@@ -1,7 +1,7 @@
 export type PlanCategory = 'Alojamiento' | 'Actividad';
 
 export interface Item {
-  id: string;
+  id: string | number;
   name: string;
   description: string;
   category: PlanCategory;
@@ -9,3 +9,5 @@ export interface Item {
   priceUnit: string;
   details: string;
 }
+
+export type CreateItemPayload = Omit<Item, 'id'>;

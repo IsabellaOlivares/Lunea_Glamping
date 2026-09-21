@@ -1,27 +1,17 @@
 // src/theme/index.ts
-// Sistema de diseño centralizado del proyecto.
-// Misma paleta que weeks 02-03 para consistencia.
+// Sistema de diseño centralizado — misma paleta que weeks 02-04.
 
 export const COLORS = {
-  // Fondos
   background: '#0d1117',
   surface: '#161b22',
   card: '#21262d',
-
-  // Texto
   textPrimary: '#e6edf3',
   textSecondary: '#8b949e',
   textMuted: '#484f58',
-
-  // Acento React Native
   accent: '#61DAFB',
-
-  // Feedback
   success: '#3fb950',
   warning: '#d29922',
   error: '#f85149',
-
-  // Borde
   border: '#30363d',
 } as const;
 

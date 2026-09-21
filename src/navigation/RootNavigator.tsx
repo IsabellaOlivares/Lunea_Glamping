@@ -1,75 +1,52 @@
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Ionicons } from '@expo/vector-icons';
+import { Pressable, Text } from 'react-native';
 
-import { DetailScreen } from '../screens/DetailScreen';
 import { HomeScreen } from '../screens/HomeScreen';
-import { SavedScreen } from '../screens/SavedScreen';
+import { DetailScreen } from '../screens/DetailScreen';
+import { CreateScreen } from '../screens/CreateScreen';
 import { COLORS } from '../theme';
-import type { HomeStackParamList, RootTabParamList } from './types';
-import { useSavedStore } from '../stores/savedStore';
+import type { RootStackParamList } from './types';
 
-const HomeStack = createNativeStackNavigator<HomeStackParamList>();
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
-function HomeStackNavigator(): React.JSX.Element {
+const headerStyle = { backgroundColor: COLORS.surface } as const;
+const headerTitleStyle = { color: COLORS.textPrimary, fontWeight: '600' as const };
+
+export function RootNavigator(): React.JSX.Element {
   return (
-    <HomeStack.Navigator
+    <Stack.Navigator
       screenOptions={{
-        headerStyle: { backgroundColor: COLORS.surface },
+        headerStyle,
+        headerTitleStyle,
         headerTintColor: COLORS.accent,
-        headerTitleStyle: { fontWeight: 'bold' as const },
+        contentStyle: { backgroundColor: COLORS.background },
       }}
     >
-      <HomeStack.Screen
-        name="HomeList"
+      <Stack.Screen
+        name="Home"
         component={HomeScreen}
-        options={{ title: 'Lunea Glamping' }}
+        options={({ navigation }) => ({
+          title: 'Lunea Glamping',
+          headerRight: () => (
+            <Pressable onPress={() => navigation.navigate('Create')}>
+              <Text style={{ color: COLORS.accent, fontSize: 24, fontWeight: '300' }}>
+                +
+              </Text>
+            </Pressable>
+          ),
+        })}
       />
-      <HomeStack.Screen
-        name="HomeDetail"
+      <Stack.Screen
+        name="Detail"
         component={DetailScreen}
         options={({ route }) => ({ title: route.params.name })}
       />
-    </HomeStack.Navigator>
-  );
-}
-
-const Tab = createBottomTabNavigator<RootTabParamList>();
-
-export function RootNavigator(): React.JSX.Element {
-  const savedCount = useSavedStore((state) => state.items.length);
-
-  return (
-    <Tab.Navigator
-      screenOptions={({ route }) => ({
-        headerShown: false,
-        tabBarActiveTintColor: COLORS.accent,
-        tabBarInactiveTintColor: COLORS.textSecondary,
-        tabBarStyle: { backgroundColor: COLORS.surface },
-        tabBarIcon: ({ focused, color, size }) => {
-          let iconName: keyof typeof Ionicons.glyphMap;
-          if (route.name === 'Home') {
-            iconName = focused ? 'home' : 'home-outline';
-          } else {
-            iconName = focused ? 'bookmark' : 'bookmark-outline';
-          }
-          return <Ionicons name={iconName} size={size} color={color} />;
-        },
-      })}
-    >
-      <Tab.Screen
-        name="Home"
-        component={HomeStackNavigator}
-        options={{ tabBarLabel: 'Inicio' }}
+      <Stack.Screen
+        name="Create"
+        component={CreateScreen}
+        options={{ title: 'Nuevo plan', presentation: 'modal' }}
       />
-      <Tab.Screen
-        name="Saved"
-        component={SavedScreen}
-        options={{
-          tabBarLabel: 'Guardados',
-          tabBarBadge: savedCount > 0 ? savedCount : undefined,
-        }}
-      />
-    </Tab.Navigator>
+    </Stack.Navigator>
   );
 }

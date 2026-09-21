@@ -1,124 +1,122 @@
 import React from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRoute, type RouteProp } from '@react-navigation/native';
 
 import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '../theme';
-import type { HomeStackParamList } from '../navigation/types';
-import { useSavedStore } from '../stores/savedStore';
+import type { RootStackParamList } from '../navigation/types';
+import { useItemById } from '../hooks/useItems';
 
-type DetailRouteProp = RouteProp<HomeStackParamList, 'HomeDetail'>;
+type DetailRouteProp = RouteProp<RootStackParamList, 'Detail'>;
 
 export function DetailScreen(): React.JSX.Element {
   const route = useRoute<DetailRouteProp>();
-  const { id, name, description, category, price, priceUnit, details } = route.params;
+  const { id, name } = route.params;
 
-  const isItemSaved = useSavedStore((state) => state.isItemSaved);
-  const addItem = useSavedStore((state) => state.addItem);
-  const removeItem = useSavedStore((state) => state.removeItem);
+  const { data: item, isLoading, isError, refetch } = useItemById(id);
 
-  const isSaved = isItemSaved(id);
+  if (isLoading) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color={COLORS.accent} />
+      </View>
+    );
+  }
 
-  function handleToggleSave(): void {
-    if (isSaved) {
-      removeItem(id);
-    } else {
-      addItem({ id, name, description, category, price, priceUnit, details });
-    }
+  if (isError || !item) {
+    return (
+      <View style={styles.centered}>
+        <Text style={styles.errorText}>No se pudo cargar el detalle</Text>
+        <Pressable style={styles.retryButton} onPress={() => refetch()}>
+          <Text style={styles.retryButtonText}>Reintentar</Text>
+        </Pressable>
+      </View>
+    );
   }
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.hero}>
-        <Text style={styles.heroLetter}>{name.charAt(0)}</Text>
+        <View style={styles.heroIcon}>
+          <Text style={styles.heroLetter}>{name.charAt(0)}</Text>
+        </View>
+        <Text style={styles.title}>{item.name}</Text>
+        <View style={styles.badge}>
+          <Text style={styles.badgeText}>{item.category}</Text>
+        </View>
       </View>
 
-      <View style={styles.info}>
-        <Text style={styles.title}>{name}</Text>
+      <Text style={styles.description}>{item.description}</Text>
 
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>{category}</Text>
-        </View>
-
-        <Text style={styles.description}>{description}</Text>
-
-        <View style={styles.field}>
+      <View style={styles.fieldsCard}>
+        <View style={styles.fieldRow}>
           <Text style={styles.fieldLabel}>Precio</Text>
           <Text style={styles.fieldValue}>
-            ${price.toLocaleString('es-CO')} {priceUnit}
+            {'$' + item.price.toLocaleString('es-CO') + ' ' + item.priceUnit}
           </Text>
         </View>
-
-        <View style={styles.field}>
+        <View style={styles.fieldRow}>
           <Text style={styles.fieldLabel}>
-            {category === 'Alojamiento' ? 'Capacidad' : 'Duración'}
+            {item.category === 'Alojamiento' ? 'Capacidad' : 'Duración'}
           </Text>
-          <Text style={styles.fieldValue}>{details}</Text>
+          <Text style={styles.fieldValue}>{item.details}</Text>
         </View>
       </View>
-
-      <Pressable
-        style={({ pressed }) => [
-          styles.saveButton,
-          isSaved && styles.saveButtonActive,
-          pressed && styles.saveButtonPressed,
-        ]}
-        onPress={handleToggleSave}
-        testID="save-button"
-      >
-        <Text style={[styles.saveButtonText, isSaved && styles.saveButtonTextActive]}>
-          {isSaved ? '★  Guardado' : '☆  Guardar'}
-        </Text>
-      </Pressable>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
-  content: { padding: SPACING.lg, gap: SPACING.lg },
-  hero: {
-    width: 96,
-    height: 96,
+  content: { padding: SPACING.lg, gap: SPACING.lg, paddingBottom: SPACING.xxl },
+  centered: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: SPACING.md,
+    backgroundColor: COLORS.background,
+  },
+  hero: { alignItems: 'center', gap: SPACING.sm },
+  heroIcon: {
+    width: 88,
+    height: 88,
     borderRadius: RADIUS.lg,
     backgroundColor: COLORS.card,
     borderWidth: 1,
     borderColor: COLORS.border,
     alignItems: 'center',
     justifyContent: 'center',
-    alignSelf: 'center',
   },
-  heroLetter: { fontSize: 40, fontWeight: '700', color: COLORS.accent },
-  info: { gap: SPACING.sm },
-  title: { ...TYPOGRAPHY.h2 },
+  heroLetter: { fontSize: 36, fontWeight: '700', color: COLORS.accent },
+  title: { ...TYPOGRAPHY.h2, textAlign: 'center' },
   badge: {
-    alignSelf: 'flex-start',
     backgroundColor: COLORS.surface,
     borderRadius: RADIUS.full,
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.xs,
   },
   badgeText: { ...TYPOGRAPHY.caption, color: COLORS.accent, fontWeight: '600' },
-  description: { ...TYPOGRAPHY.body, color: COLORS.textSecondary, lineHeight: 24 },
-  field: {
+  description: { ...TYPOGRAPHY.body, color: COLORS.textSecondary, textAlign: 'center' },
+  fieldsCard: {
     backgroundColor: COLORS.card,
     borderRadius: RADIUS.md,
+    borderWidth: 1,
+    borderColor: COLORS.border,
     padding: SPACING.md,
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    gap: SPACING.md,
   },
-  fieldLabel: { ...TYPOGRAPHY.label, textTransform: 'uppercase', letterSpacing: 1, marginBottom: SPACING.xs },
+  fieldRow: { gap: SPACING.xs },
+  fieldLabel: {
+    ...TYPOGRAPHY.label,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
   fieldValue: { ...TYPOGRAPHY.body },
-  saveButton: {
-    backgroundColor: COLORS.card,
+  errorText: { ...TYPOGRAPHY.h3, color: COLORS.error },
+  retryButton: {
+    backgroundColor: COLORS.accent,
     borderRadius: RADIUS.md,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    paddingVertical: SPACING.md,
-    alignItems: 'center',
-    marginTop: 'auto',
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.sm,
   },
-  saveButtonActive: { backgroundColor: COLORS.accent, borderColor: COLORS.accent },
-  saveButtonPressed: { opacity: 0.7 },
-  saveButtonText: { ...TYPOGRAPHY.body, fontWeight: '600', color: COLORS.textPrimary },
-  saveButtonTextActive: { color: COLORS.background },
+  retryButtonText: { ...TYPOGRAPHY.body, color: COLORS.background, fontWeight: '600' },
 });
