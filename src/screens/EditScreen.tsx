@@ -1,8 +1,9 @@
-// src/screens/CreateScreen.tsx
-// Formulario para crear un nuevo ítem.
-// TODO: conectar useForm + zodResolver + useCreateItem mutation.
+// src/screens/EditScreen.tsx
+// Formulario para editar un ítem existente.
+// Carga los datos actuales del servidor y rellena el formulario con defaultValues.
+// TODO: conectar useItemById + reset en useEffect + useUpdateItem mutation.
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -13,8 +14,9 @@ import {
   Text,
   View,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { RouteProp } from '@react-navigation/native';
 
 import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '../theme';
 import type { RootStackParamList } from '../navigation/types';
@@ -25,51 +27,94 @@ import { FormField } from '../components/FormField';
 // import { zodResolver } from '@hookform/resolvers/zod';
 // import { itemSchema, type ItemFormData } from '../schemas/itemSchema';
 
-// TODO: importar el hook de mutación
-// import { useCreateItem } from '../hooks/useItems';
+// TODO: importar los hooks de datos
+// import { useItemById, useUpdateItem } from '../hooks/useItems';
 
-type CreateNavProp = NativeStackNavigationProp<RootStackParamList, 'Create'>;
+type EditNavProp = NativeStackNavigationProp<RootStackParamList, 'Edit'>;
+type EditRouteProp = RouteProp<RootStackParamList, 'Edit'>;
 
 // ──────────────────────────────────────────────
 // PANTALLA
 // ──────────────────────────────────────────────
 
-export function CreateScreen(): React.JSX.Element {
-  const navigation = useNavigation<CreateNavProp>();
+export function EditScreen(): React.JSX.Element {
+  const navigation = useNavigation<EditNavProp>();
+  const route = useRoute<EditRouteProp>();
+  const { id } = route.params;
+
+  // TODO: obtener el ítem actual del servidor
+  // ─────────────────────────────────────────────
+  // const { data: item, isLoading } = useItemById(id);
+
+  // Placeholder hasta que implementes el TODO
+  const isLoading = false;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const item: any = undefined;
 
   // TODO: inicializar useForm con zodResolver
   // ─────────────────────────────────────────────
   // const {
   //   control,
   //   handleSubmit,
-  //   formState: { errors, isSubmitting },
+  //   reset,
+  //   formState: { errors, isSubmitting, isDirty },
   // } = useForm<ItemFormData>({
   //   resolver: zodResolver(itemSchema),
   //   defaultValues: { title: '', body: '' },
   // });
 
-  // TODO: inicializar la mutation
-  // const { mutate: createItem } = useCreateItem();
-
-  // Placeholder hasta que implementes el TODO
+  // Placeholders
   const isSubmitting = false;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const errors: any = {};
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const control: any = undefined;
+  const isDirty = true;
+
+  // TODO: cuando el ítem se carga del servidor, rellenar el formulario.
+  // ─────────────────────────────────────────────
+  // Patrón clave de esta semana: reset() + useEffect
+  //
+  // useEffect(() => {
+  //   if (item) {
+  //     reset({
+  //       title: item.title,
+  //       body: item.body ?? '',
+  //       // TODO: agrega los campos de tu dominio aquí
+  //     });
+  //   }
+  // }, [item, reset]);
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    // Remove this useEffect once you implement the real one above.
+  }, [item]);
+
+  // TODO: inicializar la mutation de actualización
+  // const { mutate: updateItem, isPending } = useUpdateItem();
+  const isPending = false;
 
   // TODO: implementar la función onSubmit
   // ─────────────────────────────────────────────
   // function onSubmit(data: ItemFormData): void {
-  //   createItem(
-  //     { title: data.title, body: data.body ?? '', userId: 1 },
+  //   updateItem(
+  //     { id, title: data.title, body: data.body ?? '', userId: 1 },
   //     {
   //       onSuccess: () => navigation.goBack(),
   //     },
   //   );
   // }
 
-  const canSubmit = !isSubmitting;
+  const canSubmit = !isSubmitting && !isPending && isDirty;
+
+  // Mientras carga los datos del servidor, mostrar indicador de carga
+  if (isLoading) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color={COLORS.accent} />
+      </View>
+    );
+  }
 
   return (
     <KeyboardAvoidingView
@@ -82,10 +127,11 @@ export function CreateScreen(): React.JSX.Element {
         keyboardShouldPersistTaps="handled"
       >
         <Text style={styles.hint}>
-          Adapta los campos de este formulario a tu dominio asignado.
+          Los campos se rellenan automáticamente con los datos actuales del ítem.
+          Modifica lo que necesites y guarda.
         </Text>
 
-        {/* TODO: reemplaza los FormField con los campos de tu dominio */}
+        {/* TODO: usa los mismos FormField que en CreateScreen */}
 
         <FormField
           control={control}
@@ -107,16 +153,7 @@ export function CreateScreen(): React.JSX.Element {
           errorMessage={errors.body?.message}
         />
 
-        {/* TODO: agrega campos adicionales de tu dominio aquí */}
-        {/* Ejemplo para Farmacia:
-        <FormField
-          control={control}
-          name="price"
-          label="Precio *"
-          placeholder="0.00"
-          keyboardType="numeric"
-          errorMessage={errors.price?.message}
-        /> */}
+        {/* TODO: agrega los campos adicionales de tu dominio */}
 
         <View style={styles.actions}>
           <Pressable
@@ -124,9 +161,9 @@ export function CreateScreen(): React.JSX.Element {
             // onPress={handleSubmit(onSubmit)}   ← descomentar al implementar
             disabled={!canSubmit}
           >
-            {isSubmitting
+            {isSubmitting || isPending
               ? <ActivityIndicator size="small" color={COLORS.background} />
-              : <Text style={styles.buttonText}>Crear ítem</Text>
+              : <Text style={styles.buttonText}>Guardar cambios</Text>
             }
           </Pressable>
 
@@ -148,6 +185,7 @@ const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: COLORS.background },
   container: { flex: 1 },
   content: { padding: SPACING.lg, gap: SPACING.md, paddingBottom: SPACING.xxl },
+  centered: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.background },
   hint: { ...TYPOGRAPHY.caption, fontStyle: 'italic' },
   actions: { gap: SPACING.sm, marginTop: SPACING.sm },
   button: {

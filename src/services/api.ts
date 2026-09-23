@@ -1,24 +1,20 @@
+// src/services/api.ts — Instancia centralizada de Axios
+
 import axios from 'axios';
 
-const API_BASE_URL =
-  'https://6ab094cf9751d2b03e6c34f0.mockapi.io';
-
 export const apiClient = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: process.env.EXPO_PUBLIC_API_URL ?? 'https://jsonplaceholder.typicode.com',
   timeout: 10_000,
-  headers: {
-    'Content-Type': 'application/json',
-    Accept: 'application/json',
-  },
+  headers: { 'Content-Type': 'application/json' },
 });
 
+// Interceptor global de errores
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    // log de red para debugging en desarrollo
     if (__DEV__) {
-      console.error('[API Error]', error.response?.status, error.config?.url);
+      console.error('[API error]', error.response?.status, error.config?.url);
     }
     return Promise.reject(error);
-  }
+  },
 );
