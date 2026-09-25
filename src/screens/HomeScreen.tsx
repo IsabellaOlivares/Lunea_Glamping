@@ -1,4 +1,9 @@
-import React from 'react';
+// src/screens/HomeScreen.tsx
+// Lista de ítems con soporte offline (caché AsyncStorage) y
+// respeto de las preferencias del usuario (orden, modo compacto).
+// Esta pantalla está COMPLETAMENTE IMPLEMENTADA — es el punto de partida.
+
+import React, { useCallback } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -7,23 +12,61 @@ import {
   Text,
   View,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-
-import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '../theme';
+import type { HomeScreenProps } from '../navigation/types';
 import { useItems } from '../hooks/useItems';
+import { usePreferences } from '../hooks/usePreferences';
+import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '../theme';
 import type { Item } from '../types';
-import type { RootStackParamList } from '../navigation/types';
 
-type HomeNavProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
+// ─── Sub-componente: fila de ítem ────────────────────────────────────────────
 
-// ──────────────────────────────────────────────
-// PANTALLA
-// ──────────────────────────────────────────────
+interface ItemRowProps {
+  item: Item;
+  compact: boolean;
+}
 
-export function HomeScreen(): React.JSX.Element {
-  const navigation = useNavigation<HomeNavProp>();
-  const { data, isLoading, isError, isFetching, refetch } = useItems();
+function ItemRow({ item, compact }: ItemRowProps): React.JSX.Element {
+  return (
+    <View style={[styles.row, compact && styles.rowCompact]}>
+      <View style={styles.avatar}>
+        <Text style={styles.avatarText}>{String(item.id)}</Text>
+      </View>
+      <View style={styles.rowContent}>
+        <Text style={styles.rowTitle} numberOfLines={compact ? 1 : 2}>
+          {item.title}
+        </Text>
+        {!compact && (
+          <Text style={styles.rowBody} numberOfLines={2}>
+            {item.body}
+          </Text>
+        )}
+      </View>
+    </View>
+  );
+}
+
+// ─── Pantalla ────────────────────────────────────────────────────────────────
+
+export function HomeScreen({ navigation }: HomeScreenProps): React.JSX.Element {
+  const { data, isLoading, isError, refetch, isFetching } = useItems();
+  const { sortOrder, compactMode } = usePreferences();
+
+  // Aplicar ordenación de la preferencia MMKV
+  const sortedItems = React.useMemo(() => {
+    if (!data?.items) return [];
+    return [...data.items].sort((a, b) =>
+      sortOrder === 'asc'
+        ? a.title.localeCompare(b.title)
+        : b.title.localeCompare(a.title),
+    );
+  }, [data?.items, sortOrder]);
+
+  const renderItem = useCallback(
+    ({ item }: { item: Item }) => (
+      <ItemRow item={item} compact={compactMode} />
+    ),
+    [compactMode],
+  );
 
   if (isLoading) {
     return (
@@ -33,11 +76,11 @@ export function HomeScreen(): React.JSX.Element {
     );
   }
 
-  if (isError) {
+  if (isError && !data) {
     return (
       <View style={styles.centered}>
-        <Text style={styles.errorText}>No se pudo cargar la lista</Text>
-        <Pressable style={styles.retryBtn} onPress={() => void refetch()}>
+        <Text style={styles.errorText}>No hay conexión y no hay caché disponible</Text>
+        <Pressable style={styles.retryBtn} onPress={() => refetch()}>
           <Text style={styles.retryText}>Reintentar</Text>
         </Pressable>
       </View>
@@ -45,89 +88,83 @@ export function HomeScreen(): React.JSX.Element {
   }
 
   return (
-    <FlatList
-      style={styles.list}
-      contentContainerStyle={styles.content}
-      data={data ?? []}
-      keyExtractor={(item) => String(item.id)}
-      refreshing={isFetching && !isLoading}
-      onRefresh={refetch}
-      ListEmptyComponent={<Text style={styles.empty}>No hay ítems aún</Text>}
-      ListHeaderComponent={
-        data?.length
-          ? <Text style={styles.count}>{data.length} ítems</Text>
-          : null
-      }
-      renderItem={({ item }) => (
-        <ItemRow
-          item={item}
-          onPress={() =>
-            navigation.navigate('Edit', { id: item.id, name: item.name })
-          }
-        />
+    <View style={styles.container}>
+      {/* Banner offline — visible cuando los datos vienen del cache */}
+      {data?.source === 'cache' && (
+        <View style={styles.offlineBanner}>
+          <Text style={styles.offlineText}>
+            ⚠️  Sin red — mostrando datos guardados localmente
+          </Text>
+        </View>
       )}
-    />
+
+      <FlatList
+        data={sortedItems}
+        keyExtractor={(item) => String(item.id)}
+        renderItem={renderItem}
+        contentContainerStyle={styles.list}
+        ItemSeparatorComponent={() => <View style={styles.separator} />}
+        onRefresh={refetch}
+        refreshing={isFetching && !isLoading}
+        ListHeaderComponent={
+          <View style={styles.listHeader}>
+            <Text style={styles.listHeaderText}>
+              {sortedItems.length} ítems · Orden: {sortOrder === 'asc' ? 'A→Z' : 'Z→A'}
+              {compactMode ? ' · Compacto' : ''}
+            </Text>
+          </View>
+        }
+        ListEmptyComponent={
+          <View style={styles.centered}>
+            <Text style={TYPOGRAPHY.body}>No hay ítems</Text>
+          </View>
+        }
+      />
+    </View>
   );
 }
 
-// ──────────────────────────────────────────────
-// SUB-COMPONENTE: fila de ítem
-// ──────────────────────────────────────────────
-
-interface ItemRowProps { item: Item; onPress: () => void }
-
-function ItemRow({ item, onPress }: ItemRowProps): React.JSX.Element {
-  return (
-    <Pressable style={styles.row} onPress={onPress}>
-      <View style={styles.rowLeft}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarLetter}>{item.name.charAt(0).toUpperCase()}</Text>
-        </View>
-        <View style={styles.rowText}>
-          <Text style={styles.rowTitle} numberOfLines={1}>{item.name}</Text>
-          <Text style={styles.rowSub} numberOfLines={1}>{'$'+item.price.toLocaleString('es-CO')+' '+item.priceUnit}</Text>
-        </View>
-      </View>
-      <Text style={styles.chevron}>›</Text>
-    </Pressable>
-  );
-}
-
-// ──────────────────────────────────────────────
-// ESTILOS
-// ──────────────────────────────────────────────
+// ─── Estilos ─────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  list: { flex: 1, backgroundColor: COLORS.background },
-  content: { padding: SPACING.lg, gap: SPACING.sm, paddingBottom: SPACING.xxl },
-  centered: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: SPACING.md, backgroundColor: COLORS.background },
-  errorText: { ...TYPOGRAPHY.h3, color: COLORS.errorLight },
-  retryBtn: { backgroundColor: COLORS.accent, borderRadius: RADIUS.sm, paddingHorizontal: SPACING.xl, paddingVertical: SPACING.sm },
-  retryText: { ...TYPOGRAPHY.body, fontWeight: '600', color: COLORS.text },
-  empty: { ...TYPOGRAPHY.caption, textAlign: 'center', marginTop: SPACING.xxl },
-  count: { ...TYPOGRAPHY.label, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: SPACING.sm },
-  row: {
-    backgroundColor: COLORS.card,
-    borderRadius: RADIUS.md,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    padding: SPACING.md,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  container: { flex: 1, backgroundColor: COLORS.background },
+  centered: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: SPACING.md },
+  list: { paddingVertical: SPACING.sm },
+  listHeader: { paddingHorizontal: SPACING.md, paddingVertical: SPACING.xs },
+  listHeaderText: { ...TYPOGRAPHY.caption },
+  separator: { height: 1, backgroundColor: COLORS.border, marginHorizontal: SPACING.md },
+  offlineBanner: {
+    backgroundColor: '#78350f',
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
   },
-  rowLeft: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, flex: 1 },
+  offlineText: { ...TYPOGRAPHY.caption, color: '#fbbf24' },
+  errorText: { ...TYPOGRAPHY.body, textAlign: 'center' },
+  retryBtn: {
+    backgroundColor: COLORS.accent,
+    borderRadius: RADIUS.sm,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.sm,
+  },
+  retryText: { ...TYPOGRAPHY.body, color: '#fff', fontWeight: '700' },
+  row: {
+    flexDirection: 'row',
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.md,
+    alignItems: 'flex-start',
+    gap: SPACING.sm,
+  },
+  rowCompact: { paddingVertical: SPACING.sm },
   avatar: {
     width: 40,
     height: 40,
-    borderRadius: RADIUS.sm,
-    backgroundColor: COLORS.background,
-    alignItems: 'center',
+    borderRadius: 20,
+    backgroundColor: COLORS.accent,
     justifyContent: 'center',
+    alignItems: 'center',
   },
-  avatarLetter: { ...TYPOGRAPHY.h3, color: COLORS.accent },
-  rowText: { flex: 1 },
+  avatarText: { color: '#fff', fontWeight: '700', fontSize: 13 },
+  rowContent: { flex: 1, gap: 2 },
   rowTitle: { ...TYPOGRAPHY.body, fontWeight: '600' },
-  rowSub: { ...TYPOGRAPHY.caption },
-  chevron: { fontSize: 20, color: COLORS.textMuted, marginLeft: SPACING.sm },
+  rowBody: { ...TYPOGRAPHY.caption },
 });

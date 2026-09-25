@@ -4,7 +4,22 @@
     "slug": "lunea-glamping",
     "version": "1.0.0",
     "orientation": "portrait",
-    "newArchEnabled": true,
-    "ios": { "supportsTablet": true }
+    "icon": "./assets/images/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#0f172a"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "dev.ergrato.bootcamp.week07"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0f172a"
+      },
+      "package": "dev.ergrato.bootcamp.week07"
+    },
+    "newArchEnabled": true
   }
 }

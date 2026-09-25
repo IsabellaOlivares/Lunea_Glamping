@@ -1,9 +1,12 @@
 // src/navigation/types.ts
-// Tipado del stack de navegación
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 export type RootStackParamList = {
-  Home:   undefined;
-  Detail: {id: number | string; name: string};
+  Home: undefined;
   Create: undefined;
-  Edit:   { id: number | string; name: string };
+  Settings: undefined;
 };
+
+export type HomeScreenProps     = NativeStackScreenProps<RootStackParamList, 'Home'>;
+export type CreateScreenProps   = NativeStackScreenProps<RootStackParamList, 'Create'>;
+export type SettingsScreenProps = NativeStackScreenProps<RootStackParamList, 'Settings'>;

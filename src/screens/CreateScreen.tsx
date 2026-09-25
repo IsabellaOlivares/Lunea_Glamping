@@ -1,3 +1,7 @@
+// src/screens/CreateScreen.tsx
+// Formulario para crear un nuevo ítem.
+// Reutilizado de semana 06 — ya implementado con RHF + Zod.
+
 import React from 'react';
 import {
   ActivityIndicator,
@@ -15,85 +19,88 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '../theme';
-import { FormField } from '../components/FormField';
-import { itemSchema, type ItemFormData, type ItemFormInput } from '../schemas/itemSchema';
-import { useCreateItem } from '../hooks/useItems';
 import type { RootStackParamList } from '../navigation/types';
-
+import { FormField } from '../components/FormField';
+import { itemSchema, type ItemFormData } from '../schemas/itemSchema';
+import { useCreateItem } from '../hooks/useItems';
 
 type CreateNavProp = NativeStackNavigationProp<RootStackParamList, 'Create'>;
 
 export function CreateScreen(): React.JSX.Element {
   const navigation = useNavigation<CreateNavProp>();
-  const { mutate: createItem, isPending } = useCreateItem();
 
-  const { control, handleSubmit, watch, setValue, formState: { errors } } = useForm<ItemFormInput, any, ItemFormData>({
+  const {
+    control,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<ItemFormData>({
     resolver: zodResolver(itemSchema),
-    defaultValues: {
-      name: '',
-      description: '',
-      category: 'Alojamiento',
-      price: 0,
-      priceUnit: '',
-      details: '',
-    },
+    defaultValues: { title: '', body: '' },
   });
 
-  const category = watch('category');
+  const { mutate: createItem, isPending } = useCreateItem();
 
-  function onSubmit(formData: ItemFormData): void {
+  function onSubmit(data: ItemFormData): void {
     createItem(
-      { ...formData, description: formData.description ?? '' },
-      { onSuccess: () => navigation.goBack() }
+      { title: data.title, body: data.body ?? '', userId: 1 },
+      { onSuccess: () => navigation.goBack() },
     );
   }
 
+  const canSubmit = !isSubmitting && !isPending;
+
   return (
-    <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        <FormField control={control} name="name" label="Nombre" placeholder="Ej. Lunea Aventura" errorMessage={errors.name?.message} />
+    <KeyboardAvoidingView
+      style={styles.flex}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+      >
+        <Text style={styles.hint}>
+          Adapta los campos a tu dominio asignado.
+        </Text>
 
-        <View style={styles.field}>
-          <Text style={styles.label}>Categoría</Text>
-          <View style={styles.categoryRow}>
-            <Pressable
-              style={[styles.categoryOption, category === 'Alojamiento' && styles.categoryOptionActive]}
-              onPress={() => setValue('category', 'Alojamiento')}
-            >
-              <Text style={[styles.categoryText, category === 'Alojamiento' && styles.categoryTextActive]}>Alojamiento</Text>
-            </Pressable>
-            <Pressable
-              style={[styles.categoryOption, category === 'Actividad' && styles.categoryOptionActive]}
-              onPress={() => setValue('category', 'Actividad')}
-            >
-              <Text style={[styles.categoryText, category === 'Actividad' && styles.categoryTextActive]}>Actividad</Text>
-            </Pressable>
-          </View>
-        </View>
-
-        <FormField control={control} name="price" label="Precio" placeholder="Ej. 380000" keyboardType="numeric" errorMessage={errors.price?.message} />
-        <FormField control={control} name="priceUnit" label="Unidad del precio" placeholder="Ej. por noche" errorMessage={errors.priceUnit?.message} />
         <FormField
           control={control}
-          name="details"
-          label={category === 'Alojamiento' ? 'Capacidad' : 'Duración'}
-          placeholder={category === 'Alojamiento' ? 'Ej. Hasta 4 personas' : 'Ej. Duración 60 min'}
-          errorMessage={errors.details?.message}
+          name="title"
+          label="Nombre *"
+          placeholder="Nombre del ítem…"
+          returnKeyType="next"
+          errorMessage={errors.title?.message}
         />
+
         <FormField
           control={control}
-          name="description"
+          name="body"
           label="Descripción"
-          placeholder="Descripción del plan…"
+          placeholder="Descripción opcional…"
           multiline
           numberOfLines={4}
-          style={styles.multiline}
-          errorMessage={errors.description?.message}
+          textAlignVertical="top"
+          errorMessage={errors.body?.message}
         />
 
-        <Pressable style={[styles.button, isPending && styles.buttonDisabled]} onPress={handleSubmit(onSubmit)} disabled={isPending}>
-          {isPending ? <ActivityIndicator size="small" color={COLORS.text} /> : <Text style={styles.buttonText}>Crear plan</Text>}
-        </Pressable>
+        {/* TODO: agrega campos adicionales de tu dominio */}
+
+        <View style={styles.actions}>
+          <Pressable
+            style={[styles.button, !canSubmit && styles.buttonDisabled]}
+            onPress={handleSubmit(onSubmit)}
+            disabled={!canSubmit}
+          >
+            {isSubmitting || isPending
+              ? <ActivityIndicator size="small" color={COLORS.background} />
+              : <Text style={styles.buttonText}>Crear ítem</Text>
+            }
+          </Pressable>
+
+          <Pressable style={styles.cancel} onPress={() => navigation.goBack()}>
+            <Text style={styles.cancelText}>Cancelar</Text>
+          </Pressable>
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -103,15 +110,16 @@ const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: COLORS.background },
   container: { flex: 1 },
   content: { padding: SPACING.lg, gap: SPACING.md, paddingBottom: SPACING.xxl },
-  field: { gap: SPACING.xs },
-  label: { ...TYPOGRAPHY.label, textTransform: 'uppercase', letterSpacing: 0.6 },
-  multiline: { minHeight: 96, textAlignVertical: 'top' },
-  categoryRow: { flexDirection: 'row', gap: SPACING.sm },
-  categoryOption: { flex: 1, borderWidth: 1, borderColor: COLORS.border, borderRadius: RADIUS.sm, padding: SPACING.sm, alignItems: 'center' },
-  categoryOptionActive: { backgroundColor: COLORS.accent, borderColor: COLORS.accent },
-  categoryText: { ...TYPOGRAPHY.body, color: COLORS.textSecondary },
-  categoryTextActive: { color: COLORS.text, fontWeight: '600' },
-  button: { backgroundColor: COLORS.accent, borderRadius: RADIUS.sm, padding: SPACING.md, alignItems: 'center', marginTop: SPACING.sm },
-  buttonDisabled: { opacity: 0.5 },
-  buttonText: { ...TYPOGRAPHY.body, fontWeight: '700', color: COLORS.text },
+  hint: { ...TYPOGRAPHY.caption, fontStyle: 'italic' },
+  actions: { gap: SPACING.sm, marginTop: SPACING.sm },
+  button: {
+    backgroundColor: COLORS.accent,
+    borderRadius: RADIUS.sm,
+    padding: SPACING.md,
+    alignItems: 'center',
+  },
+  buttonDisabled: { opacity: 0.45 },
+  buttonText: { ...TYPOGRAPHY.body, fontWeight: '700' },
+  cancel: { alignItems: 'center', padding: SPACING.sm },
+  cancelText: { ...TYPOGRAPHY.body, color: COLORS.textMuted },
 });
