@@ -1,16 +1,9 @@
-// src/hooks/useItems.ts
-// Custom hooks para CRUD de ítems usando TanStack Query + Axios
-
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { apiClient } from '../services/api';
 import type { CreateItemPayload, Item, UpdateItemPayload } from '../types';
 
 export const ITEMS_QUERY_KEY = ['items'] as const;
-
-// ─────────────────────────────────────────
-// READ — lista de ítems
-// ─────────────────────────────────────────
 
 export function useItems() {
   return useQuery<Item[]>({
@@ -19,10 +12,6 @@ export function useItems() {
   });
 }
 
-// ─────────────────────────────────────────
-// READ — ítem individual (para formulario Edit)
-// ─────────────────────────────────────────
-
 export function useItemById(id: number | string) {
   return useQuery<Item>({
     queryKey: [...ITEMS_QUERY_KEY, id],
@@ -30,10 +19,6 @@ export function useItemById(id: number | string) {
     enabled: !!id,
   });
 }
-
-// ─────────────────────────────────────────
-// CREATE
-// ─────────────────────────────────────────
 
 export function useCreateItem() {
   const queryClient = useQueryClient();

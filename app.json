@@ -4,7 +4,7 @@
     "slug": "lunea-glamping",
     "version": "1.0.0",
     "orientation": "portrait",
-    //"newArchEnabled": true,
+    "newArchEnabled": true,
     "ios": { "supportsTablet": true }
   }
 }

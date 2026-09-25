@@ -1,8 +1,3 @@
-// src/screens/EditScreen.tsx
-// Formulario para editar un ítem existente.
-// Carga los datos actuales del servidor y rellena el formulario con defaultValues.
-// TODO: conectar useItemById + reset en useEffect + useUpdateItem mutation.
-
 import React, { useEffect } from 'react';
 import {
   ActivityIndicator,
@@ -14,101 +9,63 @@ import {
   Text,
   View,
 } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RouteProp } from '@react-navigation/native';
 
 import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '../theme';
-import type { RootStackParamList } from '../navigation/types';
 import { FormField } from '../components/FormField';
-
-// TODO: importar useForm y zodResolver
-// import { useForm } from 'react-hook-form';
-// import { zodResolver } from '@hookform/resolvers/zod';
-// import { itemSchema, type ItemFormData } from '../schemas/itemSchema';
-
-// TODO: importar los hooks de datos
-// import { useItemById, useUpdateItem } from '../hooks/useItems';
+import { itemSchema, type ItemFormData } from '../schemas/itemSchema';
+import { useItemById, useUpdateItem } from '../hooks/useItems';
+import type { RootStackParamList } from '../navigation/types';
 
 type EditNavProp = NativeStackNavigationProp<RootStackParamList, 'Edit'>;
 type EditRouteProp = RouteProp<RootStackParamList, 'Edit'>;
-
-// ──────────────────────────────────────────────
-// PANTALLA
-// ──────────────────────────────────────────────
 
 export function EditScreen(): React.JSX.Element {
   const navigation = useNavigation<EditNavProp>();
   const route = useRoute<EditRouteProp>();
   const { id } = route.params;
 
-  // TODO: obtener el ítem actual del servidor
-  // ─────────────────────────────────────────────
-  // const { data: item, isLoading } = useItemById(id);
+  const { data: item, isLoading: isLoadingItem } = useItemById(id);
+  const { mutate: updateItem, isPending } = useUpdateItem();
 
-  // Placeholder hasta que implementes el TODO
-  const isLoading = false;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const item: any = undefined;
+  const { control, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm<ItemFormData>({
+    resolver: zodResolver(itemSchema),
+    defaultValues: {
+      name: '',
+      description: '',
+      category: 'Alojamiento',
+      price: 0,
+      priceUnit: '',
+      details: '',
+    },
+  });
 
-  // TODO: inicializar useForm con zodResolver
-  // ─────────────────────────────────────────────
-  // const {
-  //   control,
-  //   handleSubmit,
-  //   reset,
-  //   formState: { errors, isSubmitting, isDirty },
-  // } = useForm<ItemFormData>({
-  //   resolver: zodResolver(itemSchema),
-  //   defaultValues: { title: '', body: '' },
-  // });
-
-  // Placeholders
-  const isSubmitting = false;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const errors: any = {};
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const control: any = undefined;
-  const isDirty = true;
-
-  // TODO: cuando el ítem se carga del servidor, rellenar el formulario.
-  // ─────────────────────────────────────────────
-  // Patrón clave de esta semana: reset() + useEffect
-  //
-  // useEffect(() => {
-  //   if (item) {
-  //     reset({
-  //       title: item.title,
-  //       body: item.body ?? '',
-  //       // TODO: agrega los campos de tu dominio aquí
-  //     });
-  //   }
-  // }, [item, reset]);
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    // Remove this useEffect once you implement the real one above.
-  }, [item]);
+    if (item) {
+      reset({
+        name: item.name,
+        description: item.description,
+        category: item.category,
+        price: item.price,
+        priceUnit: item.priceUnit,
+        details: item.details,
+      });
+    }
+  }, [item, reset]);
 
-  // TODO: inicializar la mutation de actualización
-  // const { mutate: updateItem, isPending } = useUpdateItem();
-  const isPending = false;
+  const category = watch('category');
 
-  // TODO: implementar la función onSubmit
-  // ─────────────────────────────────────────────
-  // function onSubmit(data: ItemFormData): void {
-  //   updateItem(
-  //     { id, title: data.title, body: data.body ?? '', userId: 1 },
-  //     {
-  //       onSuccess: () => navigation.goBack(),
-  //     },
-  //   );
-  // }
+  function onSubmit(formData: ItemFormData): void {
+    updateItem(
+      { id, ...formData, description: formData.description ?? '' },
+      { onSuccess: () => navigation.goBack() }
+    );
+  }
 
-  const canSubmit = !isSubmitting && !isPending && isDirty;
-
-  // Mientras carga los datos del servidor, mostrar indicador de carga
-  if (isLoading) {
+  if (isLoadingItem) {
     return (
       <View style={styles.centered}>
         <ActivityIndicator size="large" color={COLORS.accent} />
@@ -117,85 +74,68 @@ export function EditScreen(): React.JSX.Element {
   }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.flex}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={styles.content}
-        keyboardShouldPersistTaps="handled"
-      >
-        <Text style={styles.hint}>
-          Los campos se rellenan automáticamente con los datos actuales del ítem.
-          Modifica lo que necesites y guarda.
-        </Text>
+    <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+        <FormField control={control} name="name" label="Nombre" errorMessage={errors.name?.message} />
 
-        {/* TODO: usa los mismos FormField que en CreateScreen */}
-
-        <FormField
-          control={control}
-          name="title"
-          label="Nombre *"
-          placeholder="Nombre del ítem…"
-          returnKeyType="next"
-          errorMessage={errors.title?.message}
-        />
-
-        <FormField
-          control={control}
-          name="body"
-          label="Descripción"
-          placeholder="Descripción opcional…"
-          multiline
-          numberOfLines={4}
-          textAlignVertical="top"
-          errorMessage={errors.body?.message}
-        />
-
-        {/* TODO: agrega los campos adicionales de tu dominio */}
-
-        <View style={styles.actions}>
-          <Pressable
-            style={[styles.button, !canSubmit && styles.buttonDisabled]}
-            // onPress={handleSubmit(onSubmit)}   ← descomentar al implementar
-            disabled={!canSubmit}
-          >
-            {isSubmitting || isPending
-              ? <ActivityIndicator size="small" color={COLORS.background} />
-              : <Text style={styles.buttonText}>Guardar cambios</Text>
-            }
-          </Pressable>
-
-          <Pressable style={styles.cancel} onPress={() => navigation.goBack()}>
-            <Text style={styles.cancelText}>Cancelar</Text>
-          </Pressable>
+        <View style={styles.field}>
+          <Text style={styles.label}>Categoría</Text>
+          <View style={styles.categoryRow}>
+            <Pressable
+              style={[styles.categoryOption, category === 'Alojamiento' && styles.categoryOptionActive]}
+              onPress={() => setValue('category', 'Alojamiento')}
+            >
+              <Text style={[styles.categoryText, category === 'Alojamiento' && styles.categoryTextActive]}>Alojamiento</Text>
+            </Pressable>
+            <Pressable
+              style={[styles.categoryOption, category === 'Actividad' && styles.categoryOptionActive]}
+              onPress={() => setValue('category', 'Actividad')}
+            >
+              <Text style={[styles.categoryText, category === 'Actividad' && styles.categoryTextActive]}>Actividad</Text>
+            </Pressable>
+          </View>
         </View>
 
+        <FormField control={control} name="price" label="Precio" keyboardType="numeric" errorMessage={errors.price?.message} />
+        <FormField control={control} name="priceUnit" label="Unidad del precio" errorMessage={errors.priceUnit?.message} />
+        <FormField
+          control={control}
+          name="details"
+          label={category === 'Alojamiento' ? 'Capacidad' : 'Duración'}
+          errorMessage={errors.details?.message}
+        />
+        <FormField
+          control={control}
+          name="description"
+          label="Descripción"
+          multiline
+          numberOfLines={4}
+          style={styles.multiline}
+          errorMessage={errors.description?.message}
+        />
+
+        <Pressable style={[styles.button, isPending && styles.buttonDisabled]} onPress={handleSubmit(onSubmit)} disabled={isPending}>
+          {isPending ? <ActivityIndicator size="small" color={COLORS.text} /> : <Text style={styles.buttonText}>Guardar cambios</Text>}
+        </Pressable>
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
-// ──────────────────────────────────────────────
-// ESTILOS
-// ──────────────────────────────────────────────
-
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: COLORS.background },
   container: { flex: 1 },
   content: { padding: SPACING.lg, gap: SPACING.md, paddingBottom: SPACING.xxl },
-  centered: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.background },
-  hint: { ...TYPOGRAPHY.caption, fontStyle: 'italic' },
-  actions: { gap: SPACING.sm, marginTop: SPACING.sm },
-  button: {
-    backgroundColor: COLORS.accent,
-    borderRadius: RADIUS.sm,
-    padding: SPACING.md,
-    alignItems: 'center',
-  },
-  buttonDisabled: { opacity: 0.45 },
-  buttonText: { ...TYPOGRAPHY.body, fontWeight: '700' },
-  cancel: { alignItems: 'center', padding: SPACING.sm },
-  cancelText: { ...TYPOGRAPHY.body, color: COLORS.textMuted },
+  centered: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.background },
+  field: { gap: SPACING.xs },
+  label: { ...TYPOGRAPHY.label, textTransform: 'uppercase', letterSpacing: 0.6 },
+  multiline: { minHeight: 96, textAlignVertical: 'top' },
+  categoryRow: { flexDirection: 'row', gap: SPACING.sm },
+  categoryOption: { flex: 1, borderWidth: 1, borderColor: COLORS.border, borderRadius: RADIUS.sm, padding: SPACING.sm, alignItems: 'center' },
+  categoryOptionActive: { backgroundColor: COLORS.accent, borderColor: COLORS.accent },
+  categoryText: { ...TYPOGRAPHY.body, color: COLORS.textSecondary },
+  categoryTextActive: { color: COLORS.text, fontWeight: '600' },
+  button: { backgroundColor: COLORS.accent, borderRadius: RADIUS.sm, padding: SPACING.md, alignItems: 'center', marginTop: SPACING.sm },
+  buttonDisabled: { opacity: 0.5 },
+  buttonText: { ...TYPOGRAPHY.body, fontWeight: '700', color: COLORS.text },
 });
