@@ -1,17 +1,18 @@
-// src/theme/index.ts
 export const COLORS = {
-  background:   '#0f172a',
-  surface:      '#1e293b',
-  surfaceHigh:  '#334155',
-  accent:       '#3b82f6',
+  background: '#0f172a',
+  surface: '#1e293b',
+  surfaceHigh: '#334155',
+  accent: '#3b82f6',
   accentPurple: '#a855f7',
-  success:      '#22c55e',
-  warning:      '#f59e0b',
-  danger:       '#ef4444',
-  text:         '#f8fafc',
-  textMuted:    '#94a3b8',
-  border:       '#334155',
-  error:        '#ef4444',
+  success: '#22c55e',
+  warning: '#f59e0b',
+  danger: '#ef4444',
+  text: '#f8fafc',
+  textMuted: '#94a3b8',
+  textSecondary: '#94a3b8',
+  brand: '#61DAFB',
+  border: '#334155',
+  error: '#ef4444',
 } as const;
 
 export const SPACING = {
@@ -31,10 +32,51 @@ export const RADIUS = {
 } as const;
 
 export const TYPOGRAPHY = {
-  heading: { fontSize: 22, fontWeight: '700' as const, color: COLORS.text },
-  title:   { fontSize: 17, fontWeight: '600' as const, color: COLORS.text },
-  body:    { fontSize: 15, fontWeight: '400' as const, color: COLORS.text },
-  caption: { fontSize: 13, fontWeight: '400' as const, color: COLORS.textMuted },
-  label:   { fontSize: 13, fontWeight: '600' as const, color: COLORS.text },
-  subtitle: {fontSize: 18, fontWeight: '600' as const, color: COLORS.text},
+  heading: {
+    fontSize: 22,
+    fontWeight: '700' as const,
+    color: COLORS.text,
+  },
+  title: {
+    fontSize: 17,
+    fontWeight: '600' as const,
+    color: COLORS.text,
+  },
+  body: {
+    fontSize: 15,
+    fontWeight: '400' as const,
+    color: COLORS.text,
+  },
+  caption: {
+    fontSize: 13,
+    fontWeight: '400' as const,
+    color: COLORS.textMuted,
+  },
+  label: {
+    fontSize: 13,
+    fontWeight: '600' as const,
+    color: COLORS.text,
+  },
+  subtitle: {
+    fontSize: 18,
+    fontWeight: '600' as const,
+    color: COLORS.text,
+  },
 } as const;
+
+export const FONT_SIZE = {
+  xs: 11,
+  sm: 13,
+  md: 15,
+  lg: 18,
+  xl: 22,
+  xxl: 28,
+} as const;
+
+export const theme = {
+  colors: COLORS,
+  spacing: SPACING,
+  radius: RADIUS,
+  typography: TYPOGRAPHY,
+  fontSize: FONT_SIZE,
+} as const; 
