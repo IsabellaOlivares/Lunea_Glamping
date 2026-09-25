@@ -1,58 +1,23 @@
-// src/navigation/RootNavigator.tsx
 import React from 'react';
-import { Pressable, Text } from 'react-native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { HomeScreen } from '../screens/HomeScreen';
-import { CreateScreen } from '../screens/CreateScreen';
-import { SettingsScreen } from '../screens/SettingsScreen';
-import type { RootStackParamList } from './types';
-import { COLORS } from '../theme';
+import { NavigationContainer } from '@react-navigation/native';
+import { StatusBar } from 'expo-status-bar';
+import { useAuthStore } from '../stores/authStore';
+import { AuthNavigator } from './AuthNavigator';
+import { AppNavigator } from './AppNavigator';
 
-const Stack = createNativeStackNavigator<RootStackParamList>();
-
+/**
+ * RootNavigator — Punto de entrada de la navegación.
+ *
+ * Cambia entre AuthNavigator y AppNavigator según isAuthenticated.
+ * React Navigation anima la transición automáticamente.
+ */
 export function RootNavigator(): React.JSX.Element {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+
   return (
-    <Stack.Navigator
-      screenOptions={{
-        headerStyle: { backgroundColor: COLORS.surface },
-        headerTintColor: COLORS.text,
-        headerTitleStyle: { fontWeight: '700' },
-        contentStyle: { backgroundColor: COLORS.background },
-      }}
-    >
-      <Stack.Screen
-        name="Home"
-        component={HomeScreen}
-        options={({ navigation }) => ({
-          title: 'Ítems',
-          headerRight: () => (
-            <Pressable
-              onPress={() => navigation.navigate('Create')}
-              style={{ marginRight: 4 }}
-            >
-              <Text style={{ color: COLORS.accent, fontSize: 28, lineHeight: 32 }}>+</Text>
-            </Pressable>
-          ),
-          headerLeft: () => (
-            <Pressable
-              onPress={() => navigation.navigate('Settings')}
-              style={{ marginLeft: 4, marginRight: 12 }}
-            >
-              <Text style={{ color: COLORS.accent, fontSize: 20 }}>⚙️</Text>
-            </Pressable>
-          ),
-        })}
-      />
-      <Stack.Screen
-        name="Create"
-        component={CreateScreen}
-        options={{ title: 'Crear ítem', presentation: 'modal' }}
-      />
-      <Stack.Screen
-        name="Settings"
-        component={SettingsScreen}
-        options={{ title: 'Ajustes' }}
-      />
-    </Stack.Navigator>
+    <NavigationContainer>
+      <StatusBar style="light" />
+      {isAuthenticated ? <AppNavigator /> : <AuthNavigator />}
+    </NavigationContainer>
   );
 }

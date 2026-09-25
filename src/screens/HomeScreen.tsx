@@ -1,170 +1,151 @@
-// src/screens/HomeScreen.tsx
-// Lista de ítems con soporte offline (caché AsyncStorage) y
-// respeto de las preferencias del usuario (orden, modo compacto).
-// Esta pantalla está COMPLETAMENTE IMPLEMENTADA — es el punto de partida.
-
-import React, { useCallback } from 'react';
+import React from 'react';
 import {
-  ActivityIndicator,
-  FlatList,
-  Pressable,
-  StyleSheet,
-  Text,
   View,
+  Text,
+  FlatList,
+  StyleSheet,
+  ActivityIndicator,
 } from 'react-native';
-import type { HomeScreenProps } from '../navigation/types';
-import { useItems } from '../hooks/useItems';
-import { usePreferences } from '../hooks/usePreferences';
-import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '../theme';
-import type { Item } from '../types';
+import { useQuery } from '@tanstack/react-query';
+import axios from 'axios';
+import { useAuthStore } from '../stores/authStore';
+import { theme } from '../theme';
 
-// ─── Sub-componente: fila de ítem ────────────────────────────────────────────
+// ============================================
+// ADAPTA ESTA PANTALLA A TU DOMINIO
+// ============================================
+// Ejemplos de qué mostrar aquí:
+// - Biblioteca: lista de libros disponibles
+// - Farmacia: catálogo de medicamentos
+// - Gimnasio: clases disponibles de la semana
+// - Restaurante: menú del día
+// - Hotel: habitaciones disponibles
 
-interface ItemRowProps {
-  item: Item;
-  compact: boolean;
+// TODO: Cambia el tipo Item para que represente entidades de tu dominio
+interface Item {
+  id: number;
+  name: string;
+  description: string,
+  category: string;
+  price: number;
+  priceUnit: string;
+  details: string;
+  [key: string]: unknown;
 }
 
-function ItemRow({ item, compact }: ItemRowProps): React.JSX.Element {
-  return (
-    <View style={[styles.row, compact && styles.rowCompact]}>
-      <View style={styles.avatar}>
-        <Text style={styles.avatarText}>{String(item.id)}</Text>
-      </View>
-      <View style={styles.rowContent}>
-        <Text style={styles.rowTitle} numberOfLines={compact ? 1 : 2}>
-          {item.name}
-        </Text>
-        {!compact && (
-          <Text style={styles.rowBody} numberOfLines={2}>
-            {'$'+ item.price.toLocaleString('es-CO')+' '+ item.priceUnit}
-          </Text>
-        )}
-      </View>
-    </View>
-  );
-}
+// TODO: Cambia la URL por el endpoint relevante a tu dominio
+// dummyjson.com tiene muchos recursos disponibles:
+// /products, /recipes, /todos, /posts, /quotes, /users, etc.
+const ITEMS_URL = 'https://6ab094cf9751d2b03e6c34f0.mockapi.io/';
 
-// ─── Pantalla ────────────────────────────────────────────────────────────────
+export function HomeScreen(): React.JSX.Element {
+  const user = useAuthStore((state) => state.user);
 
-export function HomeScreen({ navigation }: HomeScreenProps): React.JSX.Element {
-  const { data, isLoading, isError, refetch, isFetching } = useItems();
-  const { sortOrder, compactMode } = usePreferences();
-
-  // Aplicar ordenación de la preferencia MMKV
-  const sortedItems = React.useMemo(() => {
-    if (!data?.items) return [];
-    return [...data.items].sort((a, b) =>
-      sortOrder === 'asc'
-        ? a.name.localeCompare(b.name)
-        : b.name.localeCompare(a.name),
-    );
-  }, [data?.items, sortOrder]);
-
-  const renderItem = useCallback(
-    ({ item }: { item: Item }) => (
-      <ItemRow item={item} compact={compactMode} />
-    ),
-    [compactMode],
-  );
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ['home-items'],
+    queryFn: async () => {
+      const response = await axios.get<{ products: Item[] }>(ITEMS_URL);
+      return response.data.products;
+    },
+  });
 
   if (isLoading) {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color={COLORS.accent} />
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color={theme.colors.brand} />
       </View>
     );
   }
 
-  if (isError && !data) {
+  if (isError) {
     return (
-      <View style={styles.centered}>
-        <Text style={styles.errorText}>No hay conexión y no hay caché disponible</Text>
-        <Pressable style={styles.retryBtn} onPress={() => refetch()}>
-          <Text style={styles.retryText}>Reintentar</Text>
-        </Pressable>
+      <View style={styles.center}>
+        <Text style={styles.errorText}>No se pudo cargar el contenido</Text>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      {/* Banner offline — visible cuando los datos vienen del cache */}
-      {data?.source === 'cache' && (
-        <View style={styles.offlineBanner}>
-          <Text style={styles.offlineText}>
-            ⚠️  Sin red — mostrando datos guardados localmente
-          </Text>
-        </View>
-      )}
+      {/* Saludo personalizado — adapta al dominio */}
+      <View style={styles.header}>
+        <Text style={styles.greeting}>
+          Hola, {user?.firstName ?? user?.username} 👋
+        </Text>
+        {/* TODO: Cambia el subtítulo según tu dominio */}
+        <Text style={styles.subtitle}>Aquí está el contenido de tu dominio</Text>
+      </View>
 
       <FlatList
-        data={sortedItems}
+        data={data}
         keyExtractor={(item) => String(item.id)}
-        renderItem={renderItem}
         contentContainerStyle={styles.list}
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
-        onRefresh={refetch}
-        refreshing={isFetching && !isLoading}
-        ListHeaderComponent={
-          <View style={styles.listHeader}>
-            <Text style={styles.listHeaderText}>
-              {sortedItems.length} ítems · Orden: {sortOrder === 'asc' ? 'A→Z' : 'Z→A'}
-              {compactMode ? ' · Compacto' : ''}
-            </Text>
+        renderItem={({ item }) => (
+          <View style={styles.card}>
+            {/* TODO: Adapta el renderizado a los campos de tu dominio */}
+            <Text style={styles.itemTitle}>{String(item.title)}</Text>
+            <Text style={styles.itemSubtitle}>ID: {item.id}</Text>
           </View>
-        }
+        )}
         ListEmptyComponent={
-          <View style={styles.centered}>
-            <Text style={TYPOGRAPHY.body}>No hay ítems</Text>
-          </View>
+          <Text style={styles.emptyText}>No hay elementos para mostrar</Text>
         }
       />
     </View>
   );
 }
 
-// ─── Estilos ─────────────────────────────────────────────────────────────────
-
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  centered: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: SPACING.md },
-  list: { paddingVertical: SPACING.sm },
-  listHeader: { paddingHorizontal: SPACING.md, paddingVertical: SPACING.xs },
-  listHeaderText: { ...TYPOGRAPHY.caption },
-  separator: { height: 1, backgroundColor: COLORS.border, marginHorizontal: SPACING.md },
-  offlineBanner: {
-    backgroundColor: '#78350f',
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
+  container: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
   },
-  offlineText: { ...TYPOGRAPHY.caption, color: '#fbbf24' },
-  errorText: { ...TYPOGRAPHY.body, textAlign: 'center' },
-  retryBtn: {
-    backgroundColor: COLORS.accent,
-    borderRadius: RADIUS.sm,
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.sm,
-  },
-  retryText: { ...TYPOGRAPHY.body, color: '#fff', fontWeight: '700' },
-  row: {
-    flexDirection: 'row',
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.md,
-    alignItems: 'flex-start',
-    gap: SPACING.sm,
-  },
-  rowCompact: { paddingVertical: SPACING.sm },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: COLORS.accent,
+  center: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: theme.colors.background,
   },
-  avatarText: { color: '#fff', fontWeight: '700', fontSize: 13 },
-  rowContent: { flex: 1, gap: 2 },
-  rowTitle: { ...TYPOGRAPHY.body, fontWeight: '600' },
-  rowBody: { ...TYPOGRAPHY.caption },
+  header: {
+    padding: theme.spacing.md,
+    paddingTop: theme.spacing.lg,
+    gap: theme.spacing.xs,
+  },
+  greeting: {
+    fontSize: theme.fontSize.xl,
+    fontWeight: '700',
+    color: theme.colors.text,
+  },
+  subtitle: {
+    fontSize: theme.fontSize.sm,
+    color: theme.colors.textSecondary,
+  },
+  list: {
+    padding: theme.spacing.md,
+    gap: theme.spacing.sm,
+  },
+  card: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radius.md,
+    padding: theme.spacing.md,
+    gap: theme.spacing.xs,
+  },
+  itemTitle: {
+    fontSize: theme.fontSize.md,
+    fontWeight: '600',
+    color: theme.colors.text,
+  },
+  itemSubtitle: {
+    fontSize: theme.fontSize.sm,
+    color: theme.colors.textSecondary,
+  },
+  emptyText: {
+    color: theme.colors.textMuted,
+    textAlign: 'center',
+    marginTop: theme.spacing.xl,
+  },
+  errorText: {
+    color: theme.colors.danger,
+    fontSize: theme.fontSize.md,
+  },
 });

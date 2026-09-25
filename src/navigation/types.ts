@@ -1,12 +1,21 @@
-// src/navigation/types.ts
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 
-export type RootStackParamList = {
+// Stack de autenticación (sin sesión)
+export type AuthStackParamList = {
+  Login: undefined;
+  Register: undefined;
+};
+
+// Stack de la app (con sesión)
+export type AppStackParamList = {
   Home: undefined;
-  Create: undefined;
+  Profile: undefined;
   Settings: undefined;
 };
 
-export type HomeScreenProps     = NativeStackScreenProps<RootStackParamList, 'Home'>;
-export type CreateScreenProps   = NativeStackScreenProps<RootStackParamList, 'Create'>;
-export type SettingsScreenProps = NativeStackScreenProps<RootStackParamList, 'Settings'>;
+// Screen props helpers
+export type LoginScreenProps = NativeStackScreenProps<AuthStackParamList, 'Login'>;
+export type RegisterScreenProps = NativeStackScreenProps<AuthStackParamList, 'Register'>;
+export type HomeScreenProps = BottomTabScreenProps<AppStackParamList, 'Home'>;
+export type ProfileScreenProps = BottomTabScreenProps<AppStackParamList, 'Profile'>;

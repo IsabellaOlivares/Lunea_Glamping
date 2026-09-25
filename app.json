@@ -20,6 +20,9 @@
       },
       "package": "dev.ergrato.bootcamp.week07"
     },
-    "newArchEnabled": true
+    "newArchEnabled": true,
+    "plugins": [
+      "expo-secure-store"
+    ]
   }
 }

@@ -1,72 +1,55 @@
-// src/components/FormField.tsx
-// Componente reutilizable: encapsula Controller + TextInput + error.
-// Reutilizado de semana 06.
-
 import React from 'react';
 import {
-  Controller,
-  Control,
-  FieldPath,
-  FieldValues,
-} from 'react-hook-form';
-import {
-  StyleSheet,
+  View,
   Text,
   TextInput,
-  TextInputProps,
-  View,
+  StyleSheet,
+  type TextInputProps,
 } from 'react-native';
-import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '../theme';
+import { theme } from '../theme';
 
-interface FormFieldProps<T extends FieldValues> extends TextInputProps {
-  control: Control<T>;
-  name: FieldPath<T>;
+interface FormFieldProps extends TextInputProps {
   label: string;
-  errorMessage?: string;
+  error?: string;
 }
 
-export function FormField<T extends FieldValues>({
-  control,
-  name,
-  label,
-  errorMessage,
-  ...inputProps
-}: FormFieldProps<T>): React.JSX.Element {
+export function FormField({ label, error, ...inputProps }: FormFieldProps): React.JSX.Element {
   return (
-    <View style={styles.field}>
+    <View style={styles.container}>
       <Text style={styles.label}>{label}</Text>
-      <Controller
-        control={control}
-        name={name}
-        render={({ field: { onChange, onBlur, value } }) => (
-          <TextInput
-            style={[styles.input, errorMessage ? styles.inputError : null]}
-            value={value as string}
-            onChangeText={onChange}
-            onBlur={onBlur}
-            placeholderTextColor={COLORS.textMuted}
-            {...inputProps}
-          />
-        )}
+      <TextInput
+        style={[styles.input, error ? styles.inputError : null]}
+        placeholderTextColor={theme.colors.textMuted}
+        {...inputProps}
       />
-      {/* minHeight: 16 evita saltos de layout al aparecer/desaparecer el error */}
-      <Text style={styles.error}>{errorMessage ?? ''}</Text>
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  field: { gap: SPACING.xs },
-  label: { ...TYPOGRAPHY.label },
-  input: {
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: RADIUS.sm,
-    padding: SPACING.md,
-    color: COLORS.text,
-    backgroundColor: COLORS.surface,
-    fontSize: 16,
+  container: {
+    gap: 6,
   },
-  inputError: { borderColor: COLORS.danger },
-  error: { fontSize: 12, color: COLORS.danger, minHeight: 16 },
+  label: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: '600',
+    color: theme.colors.textSecondary,
+  },
+  input: {
+    backgroundColor: theme.colors.background,
+    borderRadius: theme.radius.md,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    padding: 12,
+    color: theme.colors.text,
+    fontSize: theme.fontSize.md,
+  },
+  inputError: {
+    borderColor: theme.colors.danger,
+  },
+  errorText: {
+    fontSize: theme.fontSize.xs,
+    color: theme.colors.danger,
+  },
 });

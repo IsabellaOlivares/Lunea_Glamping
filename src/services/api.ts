@@ -1,35 +1,66 @@
-// src/services/api.ts
+// ============================================
+// AUTH API — Instancia Axios para dummyjson.com/auth
+// con interceptor de refresco automático en 401.
+//
+// Nota: se usa una instancia separada de `api.ts` (que apunta al
+// backend de ítems/mockapi) para no mezclar responsabilidades.
+// ============================================
 import axios from 'axios';
-import type { Item } from '../types';
+import { getAccessToken, getRefreshToken, saveTokens, clearTokens } from './tokenService';
 
-// JSONPlaceholder como backend de práctica
-const api = axios.create({
-  baseURL: 'https://6ab094cf9751d2b03e6c34f0.mockapi.io',
-  timeout: 8000,
+export const AUTH_BASE_URL = 'https://dummyjson.com';
+
+export const authApi = axios.create({
+  baseURL: AUTH_BASE_URL,
+  timeout: 10000,
   headers: { 'Content-Type': 'application/json' },
 });
 
-export async function fetchItems(): Promise<Item[]> {
-  const { data } = await api.get<Item[]>('/items', { params: { _limit: 15 } });
-  return data;
-}
+// ─────────────────────────────────────────────
+// REQUEST interceptor: inyectar access token
+// ─────────────────────────────────────────────
+authApi.interceptors.request.use(async (config) => {
+  const token = await getAccessToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
-export async function fetchItemById(id: number | string): Promise<Item> {
-  const { data } = await api.get<Item>(`/items/${id}`);
-  return data;
-}
+// ─────────────────────────────────────────────
+// RESPONSE interceptor: 401 → refresh → retry
+// ─────────────────────────────────────────────
+authApi.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
 
-export async function createItem(
-  payload: Omit<Item, 'id'>,
-): Promise<Item> {
-  const { data } = await api.post<Item>('/items', payload);
-  return data;
-}
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
 
-export async function updateItem(
-  id: number | string,
-  payload: Partial<Omit<Item, 'id'>>,
-): Promise<Item> {
-  const { data } = await api.put<Item>(`/items/${id}`, payload);
-  return data;
-}
+      const refreshToken = await getRefreshToken();
+      if (!refreshToken) {
+        await clearTokens();
+        return Promise.reject(error);
+      }
+
+      try {
+        // axios directo (NO `authApi`) para evitar un loop de interceptores
+        const { data } = await axios.post(`${AUTH_BASE_URL}/auth/refresh`, {
+          refreshToken,
+          expiresInMins: 30,
+        });
+
+        await saveTokens({ accessToken: data.accessToken, refreshToken: data.refreshToken });
+
+        originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
+        return authApi(originalRequest);
+      } catch (refreshError) {
+        await clearTokens();
+        return Promise.reject(refreshError);
+      }
+    }
+
+    return Promise.reject(error);
+  },
+);
