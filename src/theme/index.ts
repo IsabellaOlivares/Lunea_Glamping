@@ -11,6 +11,7 @@ export const COLORS = {
   text:         '#f8fafc',
   textMuted:    '#94a3b8',
   border:       '#334155',
+  error:        '#ef4444',
 } as const;
 
 export const SPACING = {
@@ -26,6 +27,7 @@ export const RADIUS = {
   sm: 8,
   md: 12,
   lg: 16,
+  xs: 6,
 } as const;
 
 export const TYPOGRAPHY = {
@@ -34,4 +36,5 @@ export const TYPOGRAPHY = {
   body:    { fontSize: 15, fontWeight: '400' as const, color: COLORS.text },
   caption: { fontSize: 13, fontWeight: '400' as const, color: COLORS.textMuted },
   label:   { fontSize: 13, fontWeight: '600' as const, color: COLORS.text },
+  subtitle: {fontSize: 18, fontWeight: '600' as const, color: COLORS.text},
 } as const;

@@ -4,25 +4,25 @@ import type { Item } from '../types';
 
 // JSONPlaceholder como backend de práctica
 const api = axios.create({
-  baseURL: 'https://jsonplaceholder.typicode.com',
+  baseURL: 'https://6ab094cf9751d2b03e6c34f0.mockapi.io',
   timeout: 8000,
   headers: { 'Content-Type': 'application/json' },
 });
 
 export async function fetchItems(): Promise<Item[]> {
-  const { data } = await api.get<Item[]>('/posts', { params: { _limit: 15 } });
+  const { data } = await api.get<Item[]>('/items', { params: { _limit: 15 } });
   return data;
 }
 
 export async function fetchItemById(id: number | string): Promise<Item> {
-  const { data } = await api.get<Item>(`/posts/${id}`);
+  const { data } = await api.get<Item>(`/items/${id}`);
   return data;
 }
 
 export async function createItem(
   payload: Omit<Item, 'id'>,
 ): Promise<Item> {
-  const { data } = await api.post<Item>('/posts', payload);
+  const { data } = await api.post<Item>('/items', payload);
   return data;
 }
 
@@ -30,6 +30,6 @@ export async function updateItem(
   id: number | string,
   payload: Partial<Omit<Item, 'id'>>,
 ): Promise<Item> {
-  const { data } = await api.put<Item>(`/posts/${id}`, payload);
+  const { data } = await api.put<Item>(`/items/${id}`, payload);
   return data;
 }

@@ -33,11 +33,11 @@ function ItemRow({ item, compact }: ItemRowProps): React.JSX.Element {
       </View>
       <View style={styles.rowContent}>
         <Text style={styles.rowTitle} numberOfLines={compact ? 1 : 2}>
-          {item.title}
+          {item.name}
         </Text>
         {!compact && (
           <Text style={styles.rowBody} numberOfLines={2}>
-            {item.body}
+            {'$'+ item.price.toLocaleString('es-CO')+' '+ item.priceUnit}
           </Text>
         )}
       </View>
@@ -56,8 +56,8 @@ export function HomeScreen({ navigation }: HomeScreenProps): React.JSX.Element {
     if (!data?.items) return [];
     return [...data.items].sort((a, b) =>
       sortOrder === 'asc'
-        ? a.title.localeCompare(b.title)
-        : b.title.localeCompare(a.title),
+        ? a.name.localeCompare(b.name)
+        : b.name.localeCompare(a.name),
     );
   }, [data?.items, sortOrder]);
 
