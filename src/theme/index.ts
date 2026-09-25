@@ -5,6 +5,7 @@ import { StyleSheet } from 'react-native';
 export const COLORS = {
   background: '#111827',
   card: '#1F2937',
+  surface: '#273449',
   border: '#374151',
   accent: '#3B82F6',
   accentLight: '#93C5FD',
@@ -30,6 +31,7 @@ export const RADIUS = {
   sm: 6,
   md: 10,
   lg: 16,
+  full: 999,
 };
 
 export const TYPOGRAPHY = StyleSheet.create({

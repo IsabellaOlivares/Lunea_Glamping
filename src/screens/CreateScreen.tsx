@@ -16,9 +16,10 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '../theme';
 import { FormField } from '../components/FormField';
-import { itemSchema, type ItemFormData } from '../schemas/itemSchema';
+import { itemSchema, type ItemFormData, type ItemFormInput } from '../schemas/itemSchema';
 import { useCreateItem } from '../hooks/useItems';
 import type { RootStackParamList } from '../navigation/types';
+
 
 type CreateNavProp = NativeStackNavigationProp<RootStackParamList, 'Create'>;
 
@@ -26,7 +27,7 @@ export function CreateScreen(): React.JSX.Element {
   const navigation = useNavigation<CreateNavProp>();
   const { mutate: createItem, isPending } = useCreateItem();
 
-  const { control, handleSubmit, watch, setValue, formState: { errors } } = useForm<ItemFormData>({
+  const { control, handleSubmit, watch, setValue, formState: { errors } } = useForm<ItemFormInput, any, ItemFormData>({
     resolver: zodResolver(itemSchema),
     defaultValues: {
       name: '',

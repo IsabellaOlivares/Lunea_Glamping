@@ -16,6 +16,7 @@ export function FormField<T extends FieldValues>({
   name,
   label,
   errorMessage,
+  style,
   ...textInputProps
 }: FormFieldProps<T>): React.JSX.Element {
   return (
@@ -27,7 +28,7 @@ export function FormField<T extends FieldValues>({
           name={name}
           render={({ field: { onChange, onBlur, value } }) => (
             <TextInput
-              style={[styles.input, !!errorMessage && styles.inputError]}
+              style={[styles.input, !!errorMessage && styles.inputError, style]}
               value={typeof value === 'number' ? String(value) : value ?? ''}
               onChangeText={onChange}
               onBlur={onBlur}

@@ -1,4 +1,6 @@
 import { z } from 'zod';
+export type ItemFormData = z.infer<typeof itemSchema>;
+export type ItemFormInput = z.input<typeof itemSchema>;
 
 export const itemSchema = z.object({
 
@@ -27,4 +29,4 @@ export const itemSchema = z.object({
 
 });
 
-export type ItemFormData = z.infer<typeof itemSchema>;
+
