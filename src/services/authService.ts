@@ -1,6 +1,3 @@
-// ============================================
-// AUTH SERVICE — Llamadas a la API de autenticación
-// ============================================
 import axios from 'axios';
 import type { AuthResponse, LoginCredentials, RegisterData } from '../types';
 import { AUTH_BASE_URL, authApi } from './api';

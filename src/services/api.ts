@@ -1,10 +1,3 @@
-// ============================================
-// AUTH API — Instancia Axios para dummyjson.com/auth
-// con interceptor de refresco automático en 401.
-//
-// Nota: se usa una instancia separada de `api.ts` (que apunta al
-// backend de ítems/mockapi) para no mezclar responsabilidades.
-// ============================================
 import axios from 'axios';
 import { getAccessToken, getRefreshToken, saveTokens, clearTokens } from './tokenService';
 

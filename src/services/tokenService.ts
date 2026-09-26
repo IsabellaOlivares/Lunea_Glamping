@@ -1,7 +1,3 @@
-// ============================================
-// TOKEN SERVICE — SecureStore wrapper
-// Los tokens SIEMPRE en SecureStore, NUNCA en AsyncStorage/MMKV sin cifrar
-// ============================================
 import * as SecureStore from 'expo-secure-store';
 import type { AuthTokens } from '../types';
 

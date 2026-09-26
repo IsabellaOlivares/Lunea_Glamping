@@ -20,4 +20,4 @@ export function RootNavigator(): React.JSX.Element {
       {isAuthenticated ? <AppNavigator /> : <AuthNavigator />}
     </NavigationContainer>
   );
-}
+}  
