@@ -1,122 +1,96 @@
-import React from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useRoute, type RouteProp } from '@react-navigation/native';
-
-import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '../theme';
+import React, { useEffect, useRef } from 'react';
+import {
+  Animated,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { ProgressBar } from '../components/ProgressBar';
+import { COLORS, SPACING } from '../theme';
 import type { RootStackParamList } from '../navigation/types';
-import { useItemById } from '../hooks/useItems';
 
-type DetailRouteProp = RouteProp<RootStackParamList, 'Detail'>;
+type Props = NativeStackScreenProps<RootStackParamList, 'Detail'>;
 
-export function DetailScreen(): React.JSX.Element {
-  const route = useRoute<DetailRouteProp>();
-  const { id, name } = route.params;
+export function DetailScreen({ route }: Props): React.JSX.Element {
+  const { itemId } = route.params;
 
-  const { data: item, isLoading, isError, refetch } = useItemById(id);
+  const opacityAnim = useRef(new Animated.Value(0)).current;
+  const translateYAnim = useRef(new Animated.Value(30)).current;
 
-  if (isLoading) {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color={COLORS.accent} />
-      </View>
-    );
-  }
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(opacityAnim, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+      Animated.timing(translateYAnim, {
+        toValue: 0,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
 
-  if (isError || !item) {
-    return (
-      <View style={styles.centered}>
-        <Text style={styles.errorText}>No se pudo cargar el detalle</Text>
-        <Pressable style={styles.retryButton} onPress={() => refetch()}>
-          <Text style={styles.retryButtonText}>Reintentar</Text>
-        </Pressable>
-      </View>
-    );
-  }
+  const item = {
+    id: itemId,
+    name: `Plan ${itemId}`,
+    description: 'Domo premium, jacuzzi privado, cena especial, decoración personalizada. Vive una experiencia única bajo las estrellas en Lunea Glamping.',
+    category: 'Alojamiento',
+    price: 380000,
+    priceUnit: 'por noche',
+    details: 'Pareja',
+    progress: 0.72,
+  };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <View style={styles.hero}>
-        <View style={styles.heroIcon}>
-          <Text style={styles.heroLetter}>{name.charAt(0)}</Text>
-        </View>
-        <Text style={styles.title}>{item.name}</Text>
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>{item.category}</Text>
-        </View>
-      </View>
+    <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.content}>
+        <Animated.View style={{ opacity: opacityAnim, transform: [{ translateY: translateYAnim }] }}>
+          <View style={styles.card}>
+            <Text style={styles.name}>{item.name}</Text>
+            <Text style={styles.description}>{item.description}</Text>
+          </View>
 
-      <Text style={styles.description}>{item.description}</Text>
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>Disponibilidad</Text>
+            <ProgressBar progress={item.progress} label="Cupos ocupados" />
+          </View>
 
-      <View style={styles.fieldsCard}>
-        <View style={styles.fieldRow}>
-          <Text style={styles.fieldLabel}>Precio</Text>
-          <Text style={styles.fieldValue}>
-            {'$' + item.price.toLocaleString('es-CO') + ' ' + item.priceUnit}
-          </Text>
-        </View>
-        <View style={styles.fieldRow}>
-          <Text style={styles.fieldLabel}>
-            {item.category === 'Alojamiento' ? 'Capacidad' : 'Duración'}
-          </Text>
-          <Text style={styles.fieldValue}>{item.details}</Text>
-        </View>
-      </View>
-    </ScrollView>
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>Detalles</Text>
+            <Text style={styles.detailRow}>
+              <Text style={styles.detailLabel}>Categoría: </Text>
+              <Text style={styles.detailValue}>{item.category}</Text>
+            </Text>
+            <Text style={styles.detailRow}>
+              <Text style={styles.detailLabel}>Precio: </Text>
+              <Text style={styles.detailValue}>
+                {'$' + item.price.toLocaleString('es-CO') + ' ' + item.priceUnit}
+              </Text>
+            </Text>
+            <Text style={styles.detailRow}>
+              <Text style={styles.detailLabel}>Capacidad: </Text>
+              <Text style={styles.detailValue}>{item.details}</Text>
+            </Text>
+          </View>
+        </Animated.View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
-  content: { padding: SPACING.lg, gap: SPACING.lg, paddingBottom: SPACING.xxl },
-  centered: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: SPACING.md,
-    backgroundColor: COLORS.background,
-  },
-  hero: { alignItems: 'center', gap: SPACING.sm },
-  heroIcon: {
-    width: 88,
-    height: 88,
-    borderRadius: RADIUS.lg,
-    backgroundColor: COLORS.card,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  heroLetter: { fontSize: 36, fontWeight: '700', color: COLORS.accent },
-  title: { ...TYPOGRAPHY.h2, textAlign: 'center' },
-  badge: {
-    backgroundColor: COLORS.surface,
-    borderRadius: RADIUS.full,
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.xs,
-  },
-  badgeText: { ...TYPOGRAPHY.caption, color: COLORS.accent, fontWeight: '600' },
-  description: { ...TYPOGRAPHY.body, color: COLORS.textSecondary, textAlign: 'center' },
-  fieldsCard: {
-    backgroundColor: COLORS.card,
-    borderRadius: RADIUS.md,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    padding: SPACING.md,
-    gap: SPACING.md,
-  },
-  fieldRow: { gap: SPACING.xs },
-  fieldLabel: {
-    ...TYPOGRAPHY.label,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-  },
-  fieldValue: { ...TYPOGRAPHY.body },
-  errorText: { ...TYPOGRAPHY.h3, color: COLORS.error },
-  retryButton: {
-    backgroundColor: COLORS.accent,
-    borderRadius: RADIUS.md,
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.sm,
-  },
-  retryButtonText: { ...TYPOGRAPHY.body, color: COLORS.background, fontWeight: '600' },
+  content: { padding: SPACING.xl, gap: SPACING.md },
+  card: { backgroundColor: COLORS.surface, borderRadius: 14, padding: SPACING.lg, gap: SPACING.sm, marginBottom: SPACING.md },
+  name: { color: COLORS.text, fontSize: 22, fontWeight: '700' },
+  description: { color: COLORS.textSecondary, fontSize: 14, lineHeight: 22 },
+  sectionTitle: { color: COLORS.accent, fontSize: 12, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
+  detailRow: { fontSize: 14 },
+  detailLabel: { color: COLORS.textMuted },
+  detailValue: { color: COLORS.text },
 });

@@ -1,83 +1,31 @@
 export const COLORS = {
   background: '#0f172a',
   surface: '#1e293b',
-  surfaceHigh: '#334155',
-  accent: '#3b82f6',
-  accentPurple: '#a855f7',
+  surfaceSecondary: '#334155',
+  primary: '#3b82f6',
+  primaryDark: '#1d4ed8',
   success: '#22c55e',
-  warning: '#f59e0b',
-  danger: '#ef4444',
-  text: '#f8fafc',
-  textMuted: '#94a3b8',
-  textSecondary: '#94a3b8',
-  primary:'#2563eb',
-  brand: '#61DAFB',
-  border: '#334155',
+  warning: '#facc15',
   error: '#ef4444',
+  text: '#f1f5f9',
+  textSecondary: '#94a3b8',
+  textMuted: '#64748b',
+  accent: '#61DAFB',
+  border: '#334155',
 } as const;
 
 export const SPACING = {
   xs: 4,
   sm: 8,
-  md: 16,
-  lg: 24,
-  xl: 32,
-  xxl: 48,
-} as const;
-
-export const RADIUS = {
-  sm: 8,
   md: 12,
   lg: 16,
-  xs: 6,
+  xl: 20,
+  xxl: 32,
 } as const;
 
-export const TYPOGRAPHY = {
-  heading: {
-    fontSize: 22,
-    fontWeight: '700' as const,
-    color: COLORS.text,
-  },
-  title: {
-    fontSize: 17,
-    fontWeight: '600' as const,
-    color: COLORS.text,
-  },
-  body: {
-    fontSize: 15,
-    fontWeight: '400' as const,
-    color: COLORS.text,
-  },
-  caption: {
-    fontSize: 13,
-    fontWeight: '400' as const,
-    color: COLORS.textMuted,
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: '600' as const,
-    color: COLORS.text,
-  },
-  subtitle: {
-    fontSize: 18,
-    fontWeight: '600' as const,
-    color: COLORS.text,
-  },
+export const RADII = {
+  sm: 6,
+  md: 10,
+  lg: 14,
+  full: 999,
 } as const;
-
-export const FONT_SIZE = {
-  xs: 11,
-  sm: 13,
-  md: 15,
-  lg: 18,
-  xl: 22,
-  xxl: 28,
-} as const;
-
-export const theme = {
-  colors: COLORS,
-  spacing: SPACING,
-  radius: RADIUS,
-  typography: TYPOGRAPHY,
-  fontSize: FONT_SIZE,
-} as const; 

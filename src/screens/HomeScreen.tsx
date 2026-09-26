@@ -1,94 +1,143 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
-  View,
-  Text,
+  Animated,
   FlatList,
+  LayoutAnimation,
+  Platform,
+  SafeAreaView,
   StyleSheet,
-  ActivityIndicator,
+  Text,
+  UIManager,
+  View,
 } from 'react-native';
-import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
-import { useAuthStore } from '../stores/authStore';
-import { theme } from '../theme';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { AnimatedCard } from '../components/AnimatedCard';
+import { AnimatedButton } from '../components/AnimatedButton';
+import { ProgressBar } from '../components/ProgressBar';
+import { COLORS, SPACING } from '../theme';
+import type { Item } from '../types';
+import type { RootStackParamList } from '../navigation/types';
 
-interface Item {
-  id: number;
-  name: string;
-  description: string;
-  category: string;
-  price: number;
-  priceUnit: string;
-  details: string;
+if (Platform.OS === 'android') {
+  UIManager.setLayoutAnimationEnabledExperimental?.(true);
 }
 
-const ITEMS_URL = 'https://6ab094cf9751d2b03e6c34f0.mockapi.io/items';
+const SAMPLE_ITEMS: Item[] = [
+  { id: '1', name: 'Lunea Romance', description: 'Cena romántica, fogata, desayuno', category: 'Alojamiento', price: 380000, priceUnit: 'por noche', details: 'Pareja', progress: 0.8 },
+  { id: '2', name: 'Lunea Amigos', description: 'Fogata grupal, cine bajo las estrellas', category: 'Alojamiento', price: 450000, priceUnit: 'por noche', details: 'Hasta 4 personas', progress: 0.45 },
+  { id: '3', name: 'Masaje Relajante', description: 'Masaje cuerpo completo', category: 'Actividad', price: 80000, priceUnit: 'por persona', details: 'Duración 60 min', progress: 0.2 },
+  { id: '4', name: 'Paseo en Kayak', description: 'Incluye kayak y elementos de seguridad', category: 'Actividad', price: 60000, priceUnit: 'por persona', details: 'Recorrido 60 min', progress: 0.65 },
+];
 
-export function HomeScreen(): React.JSX.Element {
-  const user = useAuthStore((state) => state.user);
+type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ['home-items'],
-    queryFn: async () => {
-      const response = await axios.get<Item[]>(ITEMS_URL);
-      return response.data;
-    },
-  });
+export function HomeScreen({ navigation }: Props): React.JSX.Element {
+  const [items, setItems] = useState<Item[]>(SAMPLE_ITEMS);
 
-  if (isLoading) {
+  const itemAnims = useRef(SAMPLE_ITEMS.map(() => new Animated.Value(0))).current;
+
+  useEffect(() => {
+    Animated.stagger(
+      80,
+      itemAnims.map(anim =>
+        Animated.timing(anim, {
+          toValue: 1,
+          duration: 400,
+          useNativeDriver: true,
+        })
+      )
+    ).start();
+  }, []);
+
+  const handleRemoveItem = (id: string) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setItems(prev => prev.filter(item => item.id !== id));
+  };
+
+  const handleAddItem = () => {
+    const newItem: Item = {
+      id: Date.now().toString(),
+      name: `Plan nuevo ${items.length + 1}`,
+      description: 'Nuevo plan añadido dinámicamente',
+      category: 'Actividad',
+      price: 50000,
+      priceUnit: 'por persona',
+      details: 'Por definir',
+      progress: Math.random(),
+    };
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setItems(prev => [...prev, newItem]);
+  };
+
+  const renderItem = ({ item, index }: { item: Item; index: number }) => {
+    const anim = itemAnims[index] ?? new Animated.Value(1);
+
     return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color={theme.colors.brand} />
-      </View>
+      <Animated.View
+        style={{
+          opacity: anim,
+          transform: [
+            {
+              translateY: anim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [20, 0],
+              }),
+            },
+          ],
+        }}
+      >
+        <AnimatedCard
+          onPress={() => navigation.navigate('Detail', { itemId: item.id })}
+          style={styles.card}
+        >
+          <Text style={styles.itemName}>{item.name}</Text>
+          <Text style={styles.itemDescription}>{item.description}</Text>
+          {item.progress !== undefined && (
+            <ProgressBar progress={item.progress} label="Disponibilidad" />
+          )}
+          <AnimatedButton
+            label="Eliminar"
+            variant="success"
+            onPress={() => handleRemoveItem(item.id)}
+          />
+        </AnimatedCard>
+      </Animated.View>
     );
-  }
-
-  if (isError) {
-    return (
-      <View style={styles.center}>
-        <Text style={styles.errorText}>No se pudo cargar el contenido</Text>
-      </View>
-    );
-  }
+  };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.greeting}>
-          Hola, {user?.firstName ?? user?.username} 👋
-        </Text>
-        <Text style={styles.subtitle}>Planes disponibles en Lunea Glamping</Text>
-      </View>
-
+    <SafeAreaView style={styles.container}>
       <FlatList
-        data={data ?? []}
-        keyExtractor={(item) => String(item.id)}
+        data={items}
+        keyExtractor={item => item.id}
+        renderItem={renderItem}
         contentContainerStyle={styles.list}
-        renderItem={({ item }) => (
-          <View style={styles.card}>
-            <Text style={styles.itemTitle}>{item.name}</Text>
-            <Text style={styles.itemSubtitle}>
-              {'$' + item.price.toLocaleString('es-CO') + ' ' + item.priceUnit}
-            </Text>
+        ItemSeparatorComponent={() => <View style={styles.separator} />}
+        ListHeaderComponent={
+          <View style={styles.header}>
+            <Text style={styles.title}>Lunea Glamping</Text>
+            <Text style={styles.subtitle}>{items.length} planes</Text>
           </View>
-        )}
-        ListEmptyComponent={
-          <Text style={styles.emptyText}>No hay elementos para mostrar</Text>
+        }
+        ListFooterComponent={
+          <View style={styles.footer}>
+            <AnimatedButton label="+ Añadir plan" onPress={handleAddItem} />
+          </View>
         }
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.colors.background },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: theme.colors.background },
-  header: { padding: theme.spacing.md, paddingTop: theme.spacing.lg, gap: theme.spacing.xs },
-  greeting: { fontSize: theme.fontSize.xl, fontWeight: '700', color: theme.colors.text },
-  subtitle: { fontSize: theme.fontSize.sm, color: theme.colors.textSecondary },
-  list: { padding: theme.spacing.md, gap: theme.spacing.sm },
-  card: { backgroundColor: theme.colors.surface, borderRadius: theme.radius.md, padding: theme.spacing.md, gap: theme.spacing.xs },
-  itemTitle: { fontSize: theme.fontSize.md, fontWeight: '600', color: theme.colors.text },
-  itemSubtitle: { fontSize: theme.fontSize.sm, color: theme.colors.textSecondary },
-  emptyText: { color: theme.colors.textMuted, textAlign: 'center', marginTop: theme.spacing.xl },
-  errorText: { color: theme.colors.danger, fontSize: theme.fontSize.md },
+  container: { flex: 1, backgroundColor: COLORS.background },
+  list: { padding: SPACING.xl, gap: SPACING.md },
+  header: { marginBottom: SPACING.md },
+  title: { color: COLORS.text, fontSize: 26, fontWeight: '700' },
+  subtitle: { color: COLORS.textMuted, fontSize: 13, marginTop: 2 },
+  card: { gap: SPACING.sm },
+  itemName: { color: COLORS.text, fontSize: 16, fontWeight: '600' },
+  itemDescription: { color: COLORS.textSecondary, fontSize: 13 },
+  separator: { height: SPACING.md },
+  footer: { marginTop: SPACING.xl },
 });
